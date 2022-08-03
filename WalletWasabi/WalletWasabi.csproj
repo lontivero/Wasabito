@@ -1,0 +1,83 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+		<LangVersion>latest</LangVersion>
+		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Nullable>enable</Nullable>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<RuntimeIdentifiers>win7-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi</PathMap>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DocumentationFile>bin\Debug\net6.0\WalletWasabi.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile></DocumentationFile>
+		<DebugType>none</DebugType>
+		<DebugSymbols>false</DebugSymbols>
+		<ErrorReport>none</ErrorReport>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.6" />
+		<PackageReference Include="Microsoft.Win32.SystemEvents" Version="6.0.0" />
+		<PackageReference Include="NBitcoin" Version="7.0.6" />
+		<PackageReference Include="NBitcoin.Secp256k1" Version="3.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Legal\Assets\LegalDocumentsWw1.txt">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Legal\Assets\LegalDocumentsWw2.txt">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\win64\Tor\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\lin64\Tor\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\osx64\Tor\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\lin64\bitcoind">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\osx64\bitcoind">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\win64\bitcoind.exe">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\lin64\hwi">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\osx64\hwi">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\win64\hwi.exe">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Tor\Geoip\geoip">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Tor\Geoip\geoip6">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+	</ItemGroup>
+
+</Project>

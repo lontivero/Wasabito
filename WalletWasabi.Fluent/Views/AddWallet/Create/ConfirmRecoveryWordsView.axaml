@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:validation="clr-namespace:WalletWasabi.Fluent.Validation"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="create:ConfirmRecoveryWordsViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
+  <c:ContentArea Title="{Binding Title}"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Continue"
+                 EnableSkip="{Binding IsSkipEnable}">
+    <ScrollViewer HorizontalAlignment="Stretch" VerticalAlignment="Center" MaxWidth="350">
+      <ItemsControl Items="{Binding ConfirmationWords}">
+        <i:Interaction.Behaviors>
+          <behaviors:FocusFirstTextBoxInItemsControlBehavior />
+        </i:Interaction.Behaviors>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <DockPanel>
+              <Label Content="{Binding Index, StringFormat=Recovery word {0}, Mode=OneWay}" DockPanel.Dock="Top" />
+              <TextBox Watermark="Type in the word" Classes="hasCheckMarkBoolean" validation:CheckMarkStatus.IsEnabled="{Binding IsConfirmed}" Text="{Binding Input}" IsEnabled="{Binding !IsConfirmed}" DockPanel.Dock="Top">
+                <i:Interaction.Behaviors>
+                  <behaviors:FocusNextItemBehavior IsFocused="{Binding !IsConfirmed}" />
+                </i:Interaction.Behaviors>
+              </TextBox>
+            </DockPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </c:ContentArea>
+</UserControl>
