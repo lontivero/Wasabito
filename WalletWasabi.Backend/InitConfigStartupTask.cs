@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
+using NBitcoin;
 using NBitcoin.RPC;
 using System.IO;
 using System.Threading;
@@ -11,7 +13,7 @@ namespace WalletWasabi.Backend;
 
 public class InitConfigStartupTask : IStartupTask
 {
-	public InitConfigStartupTask(Global global, IMemoryCache cache)
+	public InitConfigStartupTask(Global global, IMemoryCache cache, IWebHostEnvironment hostingEnvironment)
 	{
 		Global = global;
 		Cache = cache;
@@ -39,13 +41,12 @@ public class InitConfigStartupTask : IStartupTask
 				network: config.Network);
 
 		var cachedRpc = new CachedRpcClient(rpc, Cache);
-
 		await Global.InitializeAsync(config, cachedRpc, cancellationToken);
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		Logger.LogDebug(e.Exception);
+		Logger.LogWarning(e.Exception);
 	}
 
 	private static void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
