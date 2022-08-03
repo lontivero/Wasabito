@@ -68,13 +68,4 @@ public class NodeBuildingTests
 			await coreNode.TryStopAsync();
 		}
 	}
-
-	[Fact]
-	public async Task GetNodeVersionTestsAsync()
-	{
-		// CI was failing a lot, the timeout was increased.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-		Version version = await CoreNode.GetVersionAsync(cts.Token);
-		Assert.Equal(WalletWasabi.Helpers.Constants.BitcoinCoreVersion, version);
-	}
 }

@@ -1,12 +1,9 @@
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
-using NBitcoin;
 using NBitcoin.RPC;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.CoinJoin.Coordinator.Rounds;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 
@@ -35,11 +32,6 @@ public class InitConfigStartupTask : IStartupTask
 		config.LoadOrCreateDefaultFile();
 		Logger.LogInfo("Config is successfully initialized.");
 
-		var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
-		var roundConfig = new CoordinatorRoundConfig(roundConfigFilePath);
-		roundConfig.LoadOrCreateDefaultFile();
-		Logger.LogInfo("RoundConfig is successfully initialized.");
-
 		string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
 		var rpc = new RPCClient(
 				authenticationString: config.BitcoinRpcConnectionString,
@@ -47,7 +39,8 @@ public class InitConfigStartupTask : IStartupTask
 				network: config.Network);
 
 		var cachedRpc = new CachedRpcClient(rpc, Cache);
-		await Global.InitializeAsync(config, roundConfig, cachedRpc, cancellationToken);
+
+		await Global.InitializeAsync(config, cachedRpc, cancellationToken);
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
