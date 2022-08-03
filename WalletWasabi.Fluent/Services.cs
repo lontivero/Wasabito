@@ -33,8 +33,6 @@ public static class Services
 
 	public static UiConfig UiConfig { get; private set; } = null!;
 
-	public static SingleInstanceChecker SingleInstanceChecker { get; private set; } = null!;
-
 	public static TorStatusChecker TorStatusChecker { get; private set; } = null!;
 
 	public static bool IsInitialized { get; private set; }
@@ -43,8 +41,7 @@ public static class Services
 	/// Initializes global services used by fluent project.
 	/// </summary>
 	/// <param name="global">The global instance.</param>
-	/// <param name="singleInstanceChecker">The singleInstanceChecker instance.</param>
-	public static void Initialize(Global global, SingleInstanceChecker singleInstanceChecker)
+	public static void Initialize(Global global)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
@@ -69,7 +66,6 @@ public static class Services
 		TransactionBroadcaster = global.TransactionBroadcaster;
 		HostedServices = global.HostedServices;
 		UiConfig = global.UiConfig;
-		SingleInstanceChecker = singleInstanceChecker;
 		TorStatusChecker = global.TorStatusChecker;
 
 		IsInitialized = true;

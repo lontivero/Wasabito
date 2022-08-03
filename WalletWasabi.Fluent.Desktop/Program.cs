@@ -43,44 +43,7 @@ public class Program
 
 		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none")}.");
 
-		// Crash reporting must be before the "single instance checking".
-		try
-		{
-			if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
-			{
-				// Show the exception.
-				BuildCrashReporterApp(exceptionToShow).StartWithClassicDesktopLifetime(args);
-				return 1;
-			}
-		}
-		catch (Exception ex)
-		{
-			// If anything happens here just log it and exit.
-			Logger.LogCritical(ex);
-			return 1;
-		}
-
 		(UiConfig uiConfig, Config config) = LoadOrCreateConfigs(dataDir);
-
-		// Start single instance checker that is active over the lifetime of the application.
-		using SingleInstanceChecker singleInstanceChecker = new(config.Network);
-
-		try
-		{
-			singleInstanceChecker.EnsureSingleOrThrowAsync().GetAwaiter().GetResult();
-		}
-		catch (OperationCanceledException)
-		{
-			// We have successfully signalled the other instance and that instance should pop up
-			// so user will think he has just run the application.
-			return 1;
-		}
-		catch (Exception ex)
-		{
-			CrashReporter.Invoke(ex);
-			Logger.LogCritical(ex);
-			return 1;
-		}
 
 		// Now run the GUI application.
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -92,7 +55,7 @@ public class Program
 		try
 		{
 			Global = CreateGlobal(dataDir, uiConfig, config);
-			Services.Initialize(Global, singleInstanceChecker);
+            Services.Initialize(Global);
 
 			RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
 				{

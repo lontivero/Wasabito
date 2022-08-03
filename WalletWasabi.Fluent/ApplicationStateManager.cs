@@ -45,11 +45,6 @@ public class ApplicationStateManager : IMainWindowService
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
 		ApplicationViewModel = new ApplicationViewModel(this);
 
-		Observable
-			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => _stateMachine.Fire(Trigger.Show));
-
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(State.Open)
 			.OnTrigger(Trigger.ShutdownRequested, () => lifetime.Shutdown())

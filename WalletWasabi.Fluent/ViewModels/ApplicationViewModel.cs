@@ -6,11 +6,10 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
-using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
-public class ApplicationViewModel : ViewModelBase
+public partial class ApplicationViewModel : ViewModelBase
 {
 	private readonly IMainWindowService _mainWindowService;
 	[AutoNotify] private bool _isMainWindowShown = true;
