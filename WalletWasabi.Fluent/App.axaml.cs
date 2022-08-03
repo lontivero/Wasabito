@@ -5,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
-using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent;
@@ -26,6 +25,8 @@ public class App : Application
 		_startInBg = startInBg;
 		_backendInitialiseAsync = backendInitialiseAsync;
 	}
+
+	public event EventHandler? ShowRequested;
 
 	public override void Initialize()
 	{

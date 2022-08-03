@@ -170,16 +170,6 @@ public class Global
 				RegisterFeeRateProviders();
 				RegisterCoinJoinComponents();
 
-				SleepInhibitor? sleepInhibitor = await SleepInhibitor.CreateAsync(HostedServices.Get<CoinJoinManager>()).ConfigureAwait(false);
-
-				if (sleepInhibitor is not null)
-				{
-					HostedServices.Register<SleepInhibitor>(() => sleepInhibitor, "Sleep Inhibitor");
-				}
-				else
-				{
-					Logger.LogInfo("Sleep Inhibitor is not available on this platform.");
-				}
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
 				var requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);

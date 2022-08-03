@@ -10,7 +10,7 @@ using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
-public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
+public class ApplicationViewModel : ViewModelBase
 {
 	private readonly IMainWindowService _mainWindowService;
 	[AutoNotify] private bool _isMainWindowShown = true;
@@ -61,18 +61,6 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public bool CanShutdown()
 	{
-		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
-
-		if (cjManager is { })
-		{
-			return cjManager.HighestCoinJoinClientState switch
-			{
-				CoinJoinClientState.InCriticalPhase => false,
-				CoinJoinClientState.Idle or CoinJoinClientState.InProgress => true,
-				_ => throw new ArgumentOutOfRangeException(),
-			};
-		}
-
 		return true;
 	}
 }

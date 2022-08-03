@@ -2,9 +2,9 @@ Wasabito is an attempt to completely redesign Wasabi Wallet to make it reach it'
 
 
 See the Introduction wiki page and Roadmap for more information.
-<p align="center">
 
-    <img src="https://user-images.githubusercontent.com/51679301/169354261-c894bac0-27f2-4a29-8470-a7519963a4b5.jpg">
+<p align="center">
+<img src="https://user-images.githubusercontent.com/51679301/169354261-c894bac0-27f2-4a29-8470-a7519963a4b5.jpg">
 </p>
 
 <h3 align="center">
