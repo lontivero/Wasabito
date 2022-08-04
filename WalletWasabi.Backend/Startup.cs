@@ -6,10 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers.WabiSabi;
@@ -47,23 +45,6 @@ public class Startup
 
 		services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
 
-		// Register the Swagger generator, defining one or more Swagger documents
-		services.AddSwaggerGen(c =>
-		{
-			c.SwaggerDoc($"v{Constants.BackendMajorVersion}", new OpenApiInfo
-			{
-				Version = $"v{Constants.BackendMajorVersion}",
-				Title = "Wasabi Wallet API",
-				Description = "Privacy focused Bitcoin Web API.",
-				License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md") }
-			});
-
-			// Set the comments path for the Swagger JSON and UI.
-			var basePath = AppContext.BaseDirectory;
-			var xmlPath = Path.Combine(basePath, "WalletWasabi.Backend.xml");
-			c.IncludeXmlComments(xmlPath);
-		});
-
 		services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
@@ -92,12 +73,6 @@ public class Startup
 	public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Global global)
 	{
 		app.UseStaticFiles();
-
-		// Enable middleware to serve generated Swagger as a JSON endpoint.
-		app.UseSwagger();
-
-		// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
-		app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", $"Wasabi Wallet API V{Constants.BackendMajorVersion}"));
 
 		app.UseRouting();
 

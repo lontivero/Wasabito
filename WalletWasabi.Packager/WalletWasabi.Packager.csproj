@@ -15,17 +15,6 @@
 		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64;osx-arm64;</RuntimeIdentifiers>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>bin\Debug\net6.0\WalletWasabi.Packager.xml</DocumentationFile>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DocumentationFile></DocumentationFile>
-		<DebugType>none</DebugType>
-		<DebugSymbols>false</DebugSymbols>
-		<ErrorReport>none</ErrorReport>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 	</ItemGroup>
