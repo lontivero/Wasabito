@@ -78,9 +78,7 @@ public partial class VerifyRecoveryWordsViewModel : RoutableViewModel
 
 			if (_currentMnemonics is { })
 			{
-				var saltSoup = _wallet.Kitchen.SaltSoup();
-
-				var recovered = KeyManager.Recover(_currentMnemonics, saltSoup, _wallet.Network,
+				var recovered = KeyManager.Recover(_currentMnemonics, _wallet.Password, _wallet.Network,
 					_wallet.KeyManager.AccountKeyPath,
 					null, _wallet.KeyManager.MinGapLimit);
 

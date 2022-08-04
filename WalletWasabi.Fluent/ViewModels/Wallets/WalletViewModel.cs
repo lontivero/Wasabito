@@ -139,7 +139,7 @@ public partial class WalletViewModel : WalletViewModelBase
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (!string.IsNullOrEmpty(wallet.Kitchen.SaltSoup()))
+			if (!string.IsNullOrEmpty(wallet.Password))
 			{
 				var pwAuthDialog = new PasswordAuthDialogViewModel(wallet);
 				var dialogResult = await NavigateDialogAsync(pwAuthDialog, NavigationTarget.CompactDialogScreen);

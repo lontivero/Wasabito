@@ -34,7 +34,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 
 		if (!wallet.KeyManager.IsWatchOnly)
 		{
-			var secret = PasswordHelper.GetMasterExtKey(wallet.KeyManager, wallet.Kitchen.SaltSoup(), out _);
+			var secret = PasswordHelper.GetMasterExtKey(wallet.KeyManager, wallet.Password, out _);
 
 			ExtendedMasterPrivateKey = secret.GetWif(network).ToWif();
 			ExtendedAccountPrivateKey = secret.Derive(wallet.KeyManager.AccountKeyPath).GetWif(network).ToWif();
@@ -42,13 +42,15 @@ public partial class WalletInfoViewModel : RoutableViewModel
 			ExtendedAccountZprv = secret.Derive(wallet.KeyManager.AccountKeyPath).ToZPrv(network);
 
 			// TODO: Should work for every type of wallet, temporarily disabling it.
-			WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Kitchen.SaltSoup(), network);
+			WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Password, network);
 		}
 
 		ExtendedAccountPublicKey = wallet.KeyManager.ExtPubKey.ToString(network);
 		ExtendedAccountZpub = wallet.KeyManager.ExtPubKey.ToZpub(network);
 		AccountKeyPath = $"m/{wallet.KeyManager.AccountKeyPath}";
 		MasterKeyFingerprint = wallet.KeyManager.MasterFingerprint.ToString();
+
+		WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Password, network);
 	}
 
 	public string ExtendedAccountPublicKey { get; }

@@ -89,7 +89,8 @@ public class Wallet : BackgroundService
 
 	public bool IsLoggedIn { get; private set; }
 
-	public Kitchen Kitchen { get; } = new();
+	public string Password { get; set; }
+
 	public ICoinsView NonPrivateCoins => new CoinsView(Coins.Where(c => c.HdPubKey.AnonymitySet < KeyManager.AnonScoreTarget));
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
@@ -101,12 +102,12 @@ public class Wallet : BackgroundService
 		if (KeyManager.IsWatchOnly)
 		{
 			IsLoggedIn = true;
-			Kitchen.Cook("");
+			Password = "";
 		}
 		else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
 		{
 			IsLoggedIn = true;
-			Kitchen.Cook(compatibilityPasswordUsed ?? Guard.Correct(password));
+			Password = password;
 		}
 
 		return IsLoggedIn;
@@ -114,7 +115,6 @@ public class Wallet : BackgroundService
 
 	public void Logout()
 	{
-		Kitchen.CleanUp();
 		IsLoggedIn = false;
 	}
 

@@ -25,7 +25,7 @@ public static class TransactionHelpers
 			labels);
 
 		var txRes = wallet.BuildTransaction(
-			wallet.Kitchen.SaltSoup(),
+			wallet.Password,
 			intent,
 			FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,
@@ -49,7 +49,7 @@ public static class TransactionHelpers
 			label: labels);
 
 		var txRes = wallet.BuildTransaction(
-			password: wallet.Kitchen.SaltSoup(),
+			password: wallet.Password,
 			payments: intent,
 			feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
 			allowUnconfirmed: true,

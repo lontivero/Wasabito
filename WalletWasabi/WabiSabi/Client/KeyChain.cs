@@ -8,24 +8,24 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class KeyChain : IKeyChain
 {
-	public KeyChain(KeyManager keyManager, Kitchen kitchen)
+	public KeyChain(KeyManager keyManager, string password)
 	{
 		if (keyManager.IsWatchOnly)
 		{
 			throw new ArgumentException("A watch-only keymanager cannot be used to initialize a keychain.");
 		}
 		KeyManager = keyManager;
-		Kitchen = kitchen;
+		Password = password;
 	}
 
 	public KeyManager KeyManager { get; }
-	private Kitchen Kitchen { get; }
+	private string Password { get; }
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
 		var secret = GetBitcoinSecret(destination.ScriptPubKey);
 
-		var masterKey = KeyManager.GetMasterExtKey(Kitchen.SaltSoup()).PrivateKey;
+		var masterKey = KeyManager.GetMasterExtKey(Password).PrivateKey;
 		var identificationMasterKey = Slip21Node.FromSeed(masterKey.ToBytes());
 		var identificationKey = identificationMasterKey.DeriveChild("SLIP-0019").DeriveChild("Ownership identification key").Key;
 
@@ -60,7 +60,7 @@ public class KeyChain : IKeyChain
 
 	private BitcoinSecret GetBitcoinSecret(Script scriptPubKey)
 	{
-		var hdKey = KeyManager.GetSecrets(Kitchen.SaltSoup(), scriptPubKey).Single();
+		var hdKey = KeyManager.GetSecrets(Password, scriptPubKey).Single();
 		if (hdKey is null)
 		{
 			throw new InvalidOperationException($"The signing key for '{scriptPubKey}' was not found.");
