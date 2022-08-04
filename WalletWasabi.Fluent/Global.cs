@@ -71,7 +71,7 @@ public class Global
 		DataDir = dataDir;
 		Config = config;
 		UiConfig = uiConfig;
-		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
+		TorSettings = new TorSettings(DataDir, Config.TerminateTorOnExit, Environment.ProcessId);
 
 		HostedServices = new HostedServices();
 		WalletManager = walletManager;

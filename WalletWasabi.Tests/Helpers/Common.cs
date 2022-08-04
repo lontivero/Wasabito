@@ -18,8 +18,7 @@ public static class Common
 	}
 
 	public static EndPoint TorSocks5Endpoint => new IPEndPoint(IPAddress.Loopback, 37150);
-	public static string TorDistributionFolder => Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons");
-	public static TorSettings TorSettings => new(DataDir, TorDistributionFolder, terminateOnExit: false);
+	public static TorSettings TorSettings => new(DataDir, terminateOnExit: false);
 
 	public static string DataDir => EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
 

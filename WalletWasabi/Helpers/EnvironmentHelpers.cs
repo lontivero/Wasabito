@@ -178,17 +178,7 @@ public static class EnvironmentHelpers
 
 	public static string GetFullBaseDirectory()
 	{
-		var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
-
-		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			if (!fullBaseDirectory.StartsWith('/'))
-			{
-				fullBaseDirectory = fullBaseDirectory.Insert(0, "/");
-			}
-		}
-
-		return fullBaseDirectory;
+		return Path.GetFullPath(AppContext.BaseDirectory);
 	}
 
 	public static string GetExecutablePath()

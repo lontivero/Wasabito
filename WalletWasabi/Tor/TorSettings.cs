@@ -16,33 +16,23 @@ public class TorSettings
 
 	/// <param name="dataDir">Application data directory.</param>
 	/// <param name="distributionFolderPath">Full path to folder containing Tor installation files.</param>
-	public TorSettings(string dataDir, string distributionFolderPath, bool terminateOnExit, int? owningProcessId = null)
+	public TorSettings(string dataDir, bool terminateOnExit, int? owningProcessId = null)
 	{
 		TorBinaryFilePath = GetTorBinaryFilePath();
-		TorBinaryDir = Path.Combine(MicroserviceHelpers.GetBinaryFolder(), "Tor");
 
 		TorDataDir = Path.Combine(dataDir, "tordata2");
 		CookieAuthFilePath = Path.Combine(dataDir, "control_auth_cookie");
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
-		DistributionFolder = distributionFolderPath;
 		TerminateOnExit = terminateOnExit;
 		OwningProcessId = owningProcessId;
-		GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
-		GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 	}
-
-	/// <summary>Full directory path where Tor binaries are placed.</summary>
-	public string TorBinaryDir { get; }
 
 	/// <summary>Full directory path where Tor stores its data.</summary>
 	public string TorDataDir { get; }
 
 	/// <summary>Full path. Directory may not necessarily exist.</summary>
 	public string LogFilePath { get; }
-
-	/// <summary>Full Tor distribution folder where Tor installation files are located.</summary>
-	public string DistributionFolder { get; }
 
 	/// <summary>Whether Tor should be terminated when Wasabi Wallet terminates.</summary>
 	public bool TerminateOnExit { get; }
@@ -62,15 +52,12 @@ public class TorSettings
 	/// <summary>Tor control endpoint.</summary>
 	public IPEndPoint ControlEndpoint { get; } = new(IPAddress.Loopback, 37151);
 
-	private string GeoIpPath { get; }
-	private string GeoIp6Path { get; }
-
 	/// <returns>Full path to Tor binary for selected <paramref name="platform"/>.</returns>
 	public static string GetTorBinaryFilePath(OSPlatform? platform = null)
 	{
 		platform ??= MicroserviceHelpers.GetCurrentPlatform();
 
-		string binaryPath = MicroserviceHelpers.GetBinaryPath(Path.Combine("Tor", TorBinaryFileName), platform);
+		string binaryPath = MicroserviceHelpers.GetBinaryPath("tor", platform);
 		return platform == OSPlatform.OSX ? $"{binaryPath}.real" : binaryPath;
 	}
 
@@ -85,8 +72,6 @@ public class TorSettings
 			$"--ControlPort {ControlEndpoint.Port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 			$"--DataDirectory \"{TorDataDir}\"",
-			$"--GeoIPFile \"{GeoIpPath}\"",
-			$"--GeoIPv6File \"{GeoIp6Path}\"",
 			$"--Log \"notice file {LogFilePath}\""
 		};
 

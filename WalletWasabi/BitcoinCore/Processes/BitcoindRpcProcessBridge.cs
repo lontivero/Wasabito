@@ -100,7 +100,7 @@ public class BitcoindRpcProcessBridge
 				}
 
 				// Wait a moment before the next check.
-				await Task.Delay(100, cancel).ConfigureAwait(false);
+				await Task.Delay(500, cancel).ConfigureAwait(false);
 			}
 		}
 		catch (Exception)

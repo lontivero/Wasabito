@@ -264,18 +264,6 @@ public static class Program
 				toNotRemove = "osx";
 			}
 
-			// Remove binaries that are not relevant to the platform.
-			var binaryFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Microservices", "Binaries"));
-
-			foreach (var dir in binaryFolder.EnumerateDirectories())
-			{
-				if (!dir.Name.Contains(toNotRemove, StringComparison.OrdinalIgnoreCase))
-				{
-					await IoHelpers.TryDeleteDirectoryAsync(dir.FullName).ConfigureAwait(false);
-				}
-			}
-
-			// Rename the final exe.
 			string oldExecutablePath;
 			string newExecutablePath;
 			if (target.StartsWith("win"))

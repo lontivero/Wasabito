@@ -32,8 +32,7 @@ public class TorProcessManagerTests
 
 		// Tor settings.
 		string dataDir = Path.Combine("temp", "tempDataDir");
-		string distributionFolder = "tempDistributionDir";
-		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+		TorSettings settings = new(dataDir, terminateOnExit: true, owningProcessId: 7);
 
 		// Mock Tor process.
 		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());

@@ -26,40 +26,11 @@ public static class MicroserviceHelpers
 		}
 	}
 
-	public static string GetBinaryFolder(OSPlatform? platform = null)
-	{
-		platform ??= GetCurrentPlatform();
-
-		string fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-		string commonPartialPath = Path.Combine(fullBaseDirectory, "Microservices", "Binaries");
-
-		string path;
-		if (platform == OSPlatform.Windows)
-		{
-			path = Path.Combine(commonPartialPath, "win64");
-		}
-		else if (platform == OSPlatform.Linux)
-		{
-			path = Path.Combine(commonPartialPath, "lin64");
-		}
-		else if (platform == OSPlatform.OSX)
-		{
-			path = Path.Combine(commonPartialPath, "osx64");
-		}
-		else
-		{
-			throw new NotSupportedException("Operating system is not supported.");
-		}
-
-		return path;
-	}
-
 	public static string GetBinaryPath(string binaryNameWithoutExtension, OSPlatform? platform = null)
 	{
 		platform ??= GetCurrentPlatform();
-		string binaryFolder = GetBinaryFolder(platform);
-		string fileName = platform.Value == OSPlatform.Windows ? $"{binaryNameWithoutExtension}.exe" : $"{binaryNameWithoutExtension}";
-
-		return Path.Combine(binaryFolder, fileName);
+		return platform.Value == OSPlatform.Windows
+			? $"{binaryNameWithoutExtension}.exe" 
+			: $"{binaryNameWithoutExtension}";
 	}
 }

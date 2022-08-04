@@ -270,21 +270,9 @@ public class TorProcessManager : IAsyncDisposable
 			UseShellExecute = false,
 			CreateNoWindow = true,
 			RedirectStandardOutput = true,
-			WorkingDirectory = Settings.TorBinaryDir
 		};
 
-		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			var env = startInfo.EnvironmentVariables;
-
-			env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
-				? Settings.TorBinaryDir
-				: Settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
-
-			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
-		}
-
-		Logger.LogInfo("Starting Tor process…");
+		Logger.LogInfo("Starting Tor process ...");
 		ProcessAsync process = new(startInfo);
 		process.Start();
 
