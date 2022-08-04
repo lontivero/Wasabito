@@ -34,7 +34,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 
 		if (!wallet.KeyManager.IsWatchOnly)
 		{
-			var secret = PasswordHelper.GetMasterExtKey(wallet.KeyManager, wallet.Password, out _);
+			var secret = PasswordHelper.GetMasterExtKey(wallet.KeyManager, wallet.Password);
 
 			ExtendedMasterPrivateKey = secret.GetWif(network).ToWif();
 			ExtendedAccountPrivateKey = secret.Derive(wallet.KeyManager.AccountKeyPath).GetWif(network).ToWif();

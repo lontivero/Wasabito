@@ -41,19 +41,12 @@ public partial class LoginViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 	{
-		string? compatibilityPasswordUsed = null;
-
-		var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password, out compatibilityPasswordUsed));
+		var isPasswordCorrect = await Task.Run(() => wallet.TryLogin(Password));
 
 		if (!isPasswordCorrect)
 		{
 			ErrorMessage = "The password is incorrect! Try Again.";
 			return;
-		}
-
-		if (compatibilityPasswordUsed is { })
-		{
-			await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 		}
 
 		LoginWallet(closedWalletViewModel);

@@ -92,11 +92,6 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 		}
 
 		JsonConvert.PopulateObject(jsonString, this, JsonSerializationOptions.Default.Settings);
-
-		if (TryEnsureBackwardsCompatibility(jsonString))
-		{
-			ToFile();
-		}
 	}
 
 	/// <inheritdoc />
@@ -125,6 +120,4 @@ public abstract class ConfigBase : NotifyPropertyChangedBase, IConfig
 			File.WriteAllText(FilePath, jsonString, Encoding.UTF8);
 		}
 	}
-
-	protected virtual bool TryEnsureBackwardsCompatibility(string jsonString) => true;
 }

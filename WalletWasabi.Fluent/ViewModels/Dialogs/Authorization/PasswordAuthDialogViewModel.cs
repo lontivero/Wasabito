@@ -29,8 +29,6 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 
 	protected override async Task<bool> AuthorizeAsync()
 	{
-		var success = await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password, out _));
-		Password = "";
-		return success;
+		return await Task.Run(() => PasswordHelper.TryPassword(_wallet.KeyManager, Password));
 	}
 }

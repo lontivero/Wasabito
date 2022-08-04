@@ -95,16 +95,14 @@ public class Wallet : BackgroundService
 
 	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
 
-	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
+	public bool TryLogin(string password)
 	{
-		compatibilityPasswordUsed = null;
-
 		if (KeyManager.IsWatchOnly)
 		{
 			IsLoggedIn = true;
 			Password = "";
 		}
-		else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
+		else if (PasswordHelper.TryPassword(KeyManager, password))
 		{
 			IsLoggedIn = true;
 			Password = password;
