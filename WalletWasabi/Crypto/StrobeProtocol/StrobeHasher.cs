@@ -69,10 +69,6 @@ public sealed class StrobeHasher
 		return this;
 	}
 
-	public StrobeHasher Append(string fieldName, CoordinationFeeRate coordinationFeeRate)
-		=> Append($"{fieldName}.Rate", coordinationFeeRate.Rate)
-		.Append($"{fieldName}.PlebsDontPayThreshold", coordinationFeeRate.PlebsDontPayThreshold);
-
 	public uint256 GetHash()
 	{
 		return new uint256(_strobe.Prf(32, false));

@@ -24,8 +24,7 @@ public class AliceClient
 		SmartCoin coin,
 		OwnershipProof ownershipProof,
 		IEnumerable<Credential> issuedAmountCredentials,
-		IEnumerable<Credential> issuedVsizeCredentials,
-		bool isPayingZeroCoordinationFee)
+		IEnumerable<Credential> issuedVsizeCredentials)
 	{
 		var roundParameters = roundState.CoinjoinState.Parameters;
 		AliceId = aliceId;
@@ -34,12 +33,10 @@ public class AliceClient
 		SmartCoin = coin;
 		OwnershipProof = ownershipProof;
 		FeeRate = roundParameters.MiningFeeRate;
-		CoordinationFeeRate = roundParameters.CoordinationFeeRate;
 		IssuedAmountCredentials = issuedAmountCredentials;
 		IssuedVsizeCredentials = issuedVsizeCredentials;
 		MaxVsizeAllocationPerAlice = roundParameters.MaxVsizeAllocationPerAlice;
 		ConfirmationTimeout = roundParameters.ConnectionConfirmationTimeout / 2;
-		IsPayingZeroCoordinationFee = isPayingZeroCoordinationFee;
 	}
 
 	public Guid AliceId { get; }
@@ -48,12 +45,10 @@ public class AliceClient
 	public SmartCoin SmartCoin { get; }
 	private OwnershipProof OwnershipProof { get; }
 	private FeeRate FeeRate { get; }
-	private CoordinationFeeRate CoordinationFeeRate { get; }
 	public IEnumerable<Credential> IssuedAmountCredentials { get; private set; }
 	public IEnumerable<Credential> IssuedVsizeCredentials { get; private set; }
 	private long MaxVsizeAllocationPerAlice { get; }
 	private TimeSpan ConfirmationTimeout { get; }
-	public bool IsPayingZeroCoordinationFee { get; }
 
 	public static async Task<AliceClient> CreateRegisterAndConfirmInputAsync(
 		RoundState roundState,
@@ -96,8 +91,8 @@ public class AliceClient
 				coin,
 				new CoinJoinInputCommitmentData("CoinJoinCoordinatorIdentifier", roundState.Id));
 
-			var (response, isPayingZeroCoordinationFee) = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
-			aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials, isPayingZeroCoordinationFee);
+			var response = await arenaClient.RegisterInputAsync(roundState.Id, coin.Coin.Outpoint, ownershipProof, cancellationToken).ConfigureAwait(false);
+			aliceClient = new(response.Value, roundState, arenaClient, coin, ownershipProof, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 			coin.CoinJoinInProgress = true;
 
 			Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.OutPoint}.");
@@ -260,5 +255,5 @@ public class AliceClient
 		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
 	}
 
-	public Money EffectiveValue => SmartCoin.EffectiveValue(FeeRate, IsPayingZeroCoordinationFee ? CoordinationFeeRate.Zero : CoordinationFeeRate);
+	public Money EffectiveValue => SmartCoin.EffectiveValue(FeeRate);
 }

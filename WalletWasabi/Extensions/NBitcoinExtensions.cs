@@ -442,19 +442,14 @@ public static class NBitcoinExtensions
 	public static Money EffectiveCost(this TxOut output, FeeRate feeRate) =>
 		output.Value + feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize());
 
-	public static Money EffectiveValue(this Coin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate)
+	public static Money EffectiveValue(this Coin coin, FeeRate feeRate)
 	{
-		var netFee = feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize());
-		var coordFee = coordinationFeeRate.GetFee(coin.Amount);
-
-		return coin.Amount - netFee - coordFee;
+		var miningFee = feeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize());
+		return coin.Amount - miningFee;
 	}
 
-	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate, CoordinationFeeRate coordinationFeeRate) =>
-		EffectiveValue(coin.Coin, feeRate, coordinationFeeRate);
-
 	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate) =>
-		EffectiveValue(coin.Coin, feeRate, CoordinationFeeRate.Zero);
+		EffectiveValue(coin.Coin, feeRate);
 
 	public static T FromBytes<T>(byte[] input) where T : IBitcoinSerializable, new()
 	{

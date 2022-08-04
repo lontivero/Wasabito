@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -22,6 +21,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -77,13 +77,13 @@ public class ArenaClientTests
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-		var (inputRegistrationResponse, _) = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
+		var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
 		var aliceId = inputRegistrationResponse.Value;
 
 		var inputVsize = Constants.P2wpkhInputVirtualSize;
 		var amountsToRequest = new[]
 		{
-			Money.Coins(.75m) - round.Parameters.MiningFeeRate.GetFee(inputVsize) - round.Parameters.CoordinationFeeRate.GetFee(Money.Coins(1m)),
+			Money.Coins(.75m) - round.Parameters.MiningFeeRate.GetFee(inputVsize),
 			Money.Coins(.25m),
 		}.Select(x => x.Satoshi).ToArray();
 
@@ -167,7 +167,7 @@ public class ArenaClientTests
 
 		var tx = round.Assert<SigningState>().CreateTransaction();
 		Assert.Single(tx.Inputs);
-		Assert.Equal(2 + 1, tx.Outputs.Count); // +1 because it pays coordination fees
+		Assert.Equal(2, tx.Outputs.Count); // FIXME: (+1 because it pays coordination fees) in case leftovers
 	}
 
 	[Fact]

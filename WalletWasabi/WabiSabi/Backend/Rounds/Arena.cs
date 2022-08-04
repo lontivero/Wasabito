@@ -235,7 +235,6 @@ public partial class Arena : PeriodicRunner
 					round.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.");
 
 					round.CoordinatorScript = GetCoordinatorScriptPreventReuse(round);
-					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript);
 
 					coinjoin = await TryAddBlameScriptAsync(round, coinjoin, allReady, round.CoordinatorScript, cancellationToken).ConfigureAwait(false);
 
@@ -466,9 +465,9 @@ public partial class Arena : PeriodicRunner
 		// Add more rounds if not enough.
 		var registrableRoundCount = Rounds.Count(x => x is not BlameRound && x.Phase == Phase.InputRegistration && x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromMinutes(1));
 		int roundsToCreate = Config.RoundParallelization - registrableRoundCount;
+        feeRate ??= (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 		for (int i = 0; i < roundsToCreate; i++)
 		{
-			feeRate ??= (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
 
 			var r = new Round(parameters, SecureRandom.Instance);
@@ -539,7 +538,7 @@ public partial class Arena : PeriodicRunner
 
 	private async Task<ConstructionState> TryAddBlameScriptAsync(Round round, ConstructionState coinjoin, bool allReady, Script blameScript, CancellationToken cancellationToken)
 	{
-		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate));
+		long aliceSum = round.Alices.Sum(x => x.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate));
 		long bobSum = round.Bobs.Sum(x => x.CredentialAmount);
 		var diff = aliceSum - bobSum;
 
@@ -573,30 +572,6 @@ public partial class Arena : PeriodicRunner
 		else if (!allReady)
 		{
 			round.LogWarning($"Could not add blame script, because the amount was too small: {nameof(diffMoney)}: {diffMoney}.");
-		}
-
-		return coinjoin;
-	}
-
-	private ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
-	{
-		var coordinationFee = round.Alices.Where(a => !a.IsPayingZeroCoordinationFee).Sum(x => round.Parameters.CoordinationFeeRate.GetFee(x.Coin.Amount));
-		if (coordinationFee == 0)
-		{
-			round.LogInfo($"Coordination fee wasn't taken, because it was free for everyone. Hurray!");
-		}
-		else
-		{
-			var effectiveCoordinationFee = coordinationFee - round.Parameters.MiningFeeRate.GetFee(coordinatorScriptPubKey.EstimateOutputVsize());
-
-			if (effectiveCoordinationFee > round.Parameters.AllowedOutputAmounts.Min)
-			{
-				coinjoin = coinjoin.AddOutput(new TxOut(effectiveCoordinationFee, coordinatorScriptPubKey));
-			}
-			else
-			{
-				round.LogWarning($"Effective coordination fee wasn't taken, because it was too small: {effectiveCoordinationFee}.");
-			}
 		}
 
 		return coinjoin;

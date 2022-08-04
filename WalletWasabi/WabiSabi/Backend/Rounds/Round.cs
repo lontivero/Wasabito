@@ -50,7 +50,6 @@ public class Round
 
 	public uint256 Id { get; }
 	public MultipartyTransactionState CoinjoinState { get; set; }
-
 	public CredentialIssuer AmountCredentialIssuer { get; }
 	public CredentialIssuer VsizeCredentialIssuer { get; }
 	public CredentialIssuerParameters AmountCredentialIssuerParameters { get; }
@@ -149,7 +148,6 @@ public class Round
 				Parameters.AllowedOutputTypes,
 				Parameters.Network,
 				Parameters.MiningFeeRate.FeePerK,
-				Parameters.CoordinationFeeRate,
 				Parameters.MaxTransactionSize,
 				Parameters.MinRelayTxFee.FeePerK,
 				Parameters.MaxAmountCredentialValue,

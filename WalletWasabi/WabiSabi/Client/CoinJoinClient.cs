@@ -476,16 +476,14 @@ public class CoinJoinClient
 		var inputNetworkFee = Money.Satoshis(registeredAliceClients.Sum(alice => feeRate.GetFee(alice.SmartCoin.Coin.ScriptPubKey.EstimateInputVsize())));
 		var outputNetworkFee = Money.Satoshis(myOutputs.Sum(output => feeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize())));
 		var totalNetworkFee = inputNetworkFee + outputNetworkFee;
-		var totalCoordinationFee = Money.Satoshis(registeredAliceClients.Where(a => a.IsPayingZeroCoordinationFee).Sum(a => roundParameters.CoordinationFeeRate.GetFee(a.SmartCoin.Amount)));
 
-		string[] summary = new string[]
-		{
-			"",
-			$"\tInput total: {totalInputAmount.ToString(true, false)} Eff: {totalEffectiveInputAmount.ToString(true, false)} NetwFee: {inputNetworkFee.ToString(true, false)} CoordFee: {totalCoordinationFee.ToString(true)}",
-			$"\tOutpu total: {totalOutputAmount.ToString(true, false)} Eff: {totalEffectiveOutputAmount.ToString(true, false)} NetwFee: {outputNetworkFee.ToString(true, false)}",
-			$"\tTotal diff : {totalDifference.ToString(true, false)}",
-			$"\tEffec diff : {effectiveDifference.ToString(true, false)}",
-			$"\tTotal fee  : {totalNetworkFee.ToString(true, false)}"
+		string[] summary = new string[] {
+		$"Round ({roundState.Id}):",
+		$"\tInput total: {totalInputAmount.ToString(true)} Eff: {totalEffectiveInputAmount.ToString(true)} NetwFee: {inputNetworkFee.ToString(true)})",
+		$"\tOutpu total: {totalOutputAmount.ToString(true)} Eff: {totalEffectiveOutputAmount.ToString(true)} NetwFee: {outputNetworkFee.ToString(true)}",
+		$"\tTotal diff : {totalDifference.ToString(true)}",
+		$"\tEffec diff : {effectiveDifference.ToString(true)}",
+		$"\tTotal fee  : {totalNetworkFee.ToString(true)}"
 		};
 
 		roundState.LogDebug(string.Join(Environment.NewLine, summary));
@@ -630,7 +628,7 @@ public class CoinJoinClient
 
 	private static bool TryAddGroup(RoundParameters parameters, Dictionary<int, IEnumerable<SmartCoin>> groups, IEnumerable<SmartCoin> group)
 	{
-		var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate, parameters.CoordinationFeeRate));
+		var inSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate));
 		var outFee = parameters.MiningFeeRate.GetFee(Constants.P2wpkhOutputVirtualSize);
 		if (inSum >= outFee + parameters.AllowedOutputAmounts.Min)
 		{
@@ -739,14 +737,14 @@ public class CoinJoinClient
 		AmountDecomposer amountDecomposer = new(roundParameters.MiningFeeRate, roundParameters.AllowedOutputAmounts, Constants.P2wpkhOutputVirtualSize, Constants.P2wpkhInputVirtualSize, (int)availableVsize);
 		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
-		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate));
+		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate));
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
 
 		// Get as many destinations as outputs we need.
 		var destinations = DestinationProvider.GetNextDestinations(outputValues.Count()).ToArray();
 		var outputTxOuts = outputValues.Zip(destinations, (amount, destination) => new TxOut(amount, destination.ScriptPubKey));
 
-		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.CoordinationFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
+		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(inputEffectiveValuesAndSizes, outputTxOuts, roundParameters.MiningFeeRate, roundParameters.MaxVsizeAllocationPerAlice);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
 
 		var combinedToken = linkedCts.Token;

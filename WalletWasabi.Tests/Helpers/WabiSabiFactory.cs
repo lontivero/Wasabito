@@ -55,7 +55,6 @@ public static class WabiSabiFactory
 			cfg,
 			Network.Main,
 			new FeeRate(100m),
-			cfg.CoordinationFeeRate,
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
 	public static Round CreateRound(RoundParameters parameters) =>
@@ -200,7 +199,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (realAmountCredentialRequest, _) = amClient.CreateRequest(
-			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi },
+			new[] { amount?.Satoshi ?? alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate).Satoshi },
 			amZeroCredentials,
 			CancellationToken.None);
 		var (realVsizeCredentialRequest, _) = vsClient.CreateRequest(
@@ -234,7 +233,7 @@ public static class WabiSabiFactory
 
 		var alice = round.Alices.FirstOrDefault() ?? CreateAlice(round);
 		var (amCredentialRequest, amValid) = amClient.CreateRequest(
-			new[] { alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate).Satoshi },
+			new[] { alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate).Satoshi },
 			amZeroCredentials, // FIXME doesn't make much sense
 			CancellationToken.None);
 		long startingVsizeCredentialAmount = vsize ?? alice.CalculateRemainingVsizeCredentials(round.Parameters.MaxVsizeAllocationPerAlice);
@@ -265,7 +264,7 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.CoordinationFeeRate, round.Parameters.MaxSuggestedAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(), new InsecureRandom());
+		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.MaxSuggestedAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(), new InsecureRandom());
 
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
 	{

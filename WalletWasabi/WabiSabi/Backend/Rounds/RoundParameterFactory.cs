@@ -20,7 +20,6 @@ public class RoundParameterFactory
 			Config,
 			Network,
 			feeRate,
-			Config.CoordinationFeeRate,
 			maxSuggestedAmount);
 
 	public virtual RoundParameters CreateBlameRoundParameter(FeeRate feeRate, Round blameOf) =>
@@ -28,6 +27,5 @@ public class RoundParameterFactory
 			Config,
 			Network,
 			feeRate,
-			Config.CoordinationFeeRate,
 			blameOf.Parameters.MaxSuggestedAmount);
 }

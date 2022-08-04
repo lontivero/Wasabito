@@ -92,10 +92,6 @@ public class WabiSabiConfig : ConfigBase
 
 	public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
-	[DefaultValueCoordinationFeeRate(0.003, 0.01)]
-	[JsonProperty(PropertyName = "CoordinationFeeRate", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public CoordinationFeeRate CoordinationFeeRate { get; set; } = new CoordinationFeeRate(0.003m, Money.Coins(0.01m));
-
 	[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
 	public ExtPubKey CoordinatorExtPubKey { get; private set; } = Constants.WabiSabiFallBackCoordinatorExtPubKey;
 
