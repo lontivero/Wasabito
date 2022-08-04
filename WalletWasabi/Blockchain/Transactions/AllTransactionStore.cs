@@ -38,25 +38,22 @@ public class AllTransactionStore : IAsyncDisposable
 
 	public async Task InitializeAsync(bool ensureBackwardsCompatibility = true, CancellationToken cancel = default)
 	{
-		using (BenchmarkLogger.Measure())
+		var mempoolWorkFolder = Path.Combine(WorkFolderPath, "Mempool");
+		var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
+
+		var initTasks = new[]
 		{
-			var mempoolWorkFolder = Path.Combine(WorkFolderPath, "Mempool");
-			var confirmedWorkFolder = Path.Combine(WorkFolderPath, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion);
+				MempoolStore.InitializeAsync(mempoolWorkFolder, Network, $"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
+				ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network, $"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
+			};
 
-			var initTasks = new[]
-			{
-					MempoolStore.InitializeAsync(mempoolWorkFolder, Network, $"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancel),
-					ConfirmedStore.InitializeAsync(confirmedWorkFolder, Network, $"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancel)
-				};
+		await Task.WhenAll(initTasks).ConfigureAwait(false);
+		EnsureConsistency();
 
-			await Task.WhenAll(initTasks).ConfigureAwait(false);
-			EnsureConsistency();
-
-			if (ensureBackwardsCompatibility)
-			{
-				cancel.ThrowIfCancellationRequested();
-				EnsureBackwardsCompatibility();
-			}
+		if (ensureBackwardsCompatibility)
+		{
+			cancel.ThrowIfCancellationRequested();
+			EnsureBackwardsCompatibility();
 		}
 	}
 

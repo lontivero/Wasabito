@@ -65,31 +65,28 @@ public class IndexStore : IAsyncDisposable
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
-		using (BenchmarkLogger.Measure())
+		using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			using (await IndexLock.LockAsync(cancel).ConfigureAwait(false))
-			using (await MatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
-			using (await ImmatureIndexAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+			await EnsureBackwardsCompatibilityAsync().ConfigureAwait(false);
+
+			if (Network == Network.RegTest)
 			{
-				await EnsureBackwardsCompatibilityAsync().ConfigureAwait(false);
-
-				if (Network == Network.RegTest)
-				{
-					MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
-					ImmatureIndexFileManager.DeleteMe();
-				}
-
-				cancel.ThrowIfCancellationRequested();
-
-				if (!MatureIndexFileManager.Exists())
-				{
-					await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, CancellationToken.None).ConfigureAwait(false);
-				}
-
-				cancel.ThrowIfCancellationRequested();
-
-				await InitializeFiltersAsync(cancel).ConfigureAwait(false);
+				MatureIndexFileManager.DeleteMe(); // RegTest is not a global ledger, better to delete it.
+				ImmatureIndexFileManager.DeleteMe();
 			}
+
+			cancel.ThrowIfCancellationRequested();
+
+			if (!MatureIndexFileManager.Exists())
+			{
+				await MatureIndexFileManager.WriteAllLinesAsync(new[] { StartingFilter.ToLine() }, CancellationToken.None).ConfigureAwait(false);
+			}
+
+			cancel.ThrowIfCancellationRequested();
+
+			await InitializeFiltersAsync(cancel).ConfigureAwait(false);
 		}
 	}
 
@@ -120,29 +117,26 @@ public class IndexStore : IAsyncDisposable
 		{
 			if (MatureIndexFileManager.Exists())
 			{
-				using (BenchmarkLogger.Measure(LogLevel.Debug, "MatureIndexFileManager loading"))
+				int i = 0;
+				using StreamReader sr = MatureIndexFileManager.OpenText();
+				if (!sr.EndOfStream)
 				{
-					int i = 0;
-					using StreamReader sr = MatureIndexFileManager.OpenText();
-					if (!sr.EndOfStream)
+					while (true)
 					{
-						while (true)
+						i++;
+						cancel.ThrowIfCancellationRequested();
+						string? line = await sr.ReadLineAsync().ConfigureAwait(false);
+
+						if (line is null)
 						{
-							i++;
-							cancel.ThrowIfCancellationRequested();
-							string? line = await sr.ReadLineAsync().ConfigureAwait(false);
-
-							if (line is null)
-							{
-								break;
-							}
-
-							ProcessLine(line, enqueue: false);
+							break;
 						}
-					}
 
-					Logger.LogDebug($"Loaded {i} lines from the mature index file.");
+						ProcessLine(line, enqueue: false);
+					}
 				}
+
+				Logger.LogDebug($"Loaded {i} lines from the mature index file.");
 			}
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)

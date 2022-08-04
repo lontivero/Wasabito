@@ -44,15 +44,12 @@ public class BitcoinStore
 
 	public async Task InitializeAsync(CancellationToken cancel = default)
 	{
-		using (BenchmarkLogger.Measure())
+		var initTasks = new[]
 		{
-			var initTasks = new[]
-			{
-					IndexStore.InitializeAsync(cancel),
-					TransactionStore.InitializeAsync(cancel: cancel)
-				};
+			IndexStore.InitializeAsync(cancel),
+			TransactionStore.InitializeAsync(cancel: cancel)
+		};
 
-			await Task.WhenAll(initTasks).ConfigureAwait(false);
-		}
+		await Task.WhenAll(initTasks).ConfigureAwait(false);
 	}
 }

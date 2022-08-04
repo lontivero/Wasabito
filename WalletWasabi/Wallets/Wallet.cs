@@ -174,15 +174,12 @@ public class Wallet : BackgroundService
 				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
 			}
 
-			using (BenchmarkLogger.Measure())
-			{
-				await RuntimeParams.LoadAsync().ConfigureAwait(false);
+			await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
-				using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
-				{
-					await LoadWalletStateAsync(cancel).ConfigureAwait(false);
-					await LoadDummyMempoolAsync().ConfigureAwait(false);
-				}
+			using (await HandleFiltersLock.LockAsync(cancel).ConfigureAwait(false))
+			{
+				await LoadWalletStateAsync(cancel).ConfigureAwait(false);
+				await LoadDummyMempoolAsync().ConfigureAwait(false);
 			}
 
 			await base.StartAsync(cancel).ConfigureAwait(false);
@@ -369,10 +366,7 @@ public class Wallet : BackgroundService
 		KeyManager.AssertNetworkOrClearBlockState(Network);
 		Height bestKeyManagerHeight = KeyManager.GetBestHeight();
 
-		using (BenchmarkLogger.Measure(LogLevel.Info, "Initial Transaction Processing"))
-		{
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
-		}
+		TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions().TakeWhile(x => x.Height <= bestKeyManagerHeight));
 
 		// Go through the filters and queue to download the matches.
 		await BitcoinStore.IndexStore.ForeachFiltersAsync(async (filterModel) => await ProcessFilterModelAsync(filterModel, cancel).ConfigureAwait(false),

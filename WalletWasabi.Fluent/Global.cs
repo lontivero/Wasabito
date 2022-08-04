@@ -68,49 +68,42 @@ public class Global
 
 	public Global(string dataDir, Config config, UiConfig uiConfig, WalletManager walletManager)
 	{
-		using (BenchmarkLogger.Measure())
+		DataDir = dataDir;
+		Config = config;
+		UiConfig = uiConfig;
+		TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
+
+		HostedServices = new HostedServices();
+		WalletManager = walletManager;
+
+		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
+		AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+		SmartHeaderChain smartHeaderChain = new(maxChainSize: 20_000);
+		IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
+		var mempoolService = new MempoolService();
+		var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
+
+		BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
+
+		if (Config.UseTor)
 		{
-			DataDir = dataDir;
-			Config = config;
-			UiConfig = uiConfig;
-			TorSettings = new TorSettings(DataDir, distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(), Config.TerminateTorOnExit, Environment.ProcessId);
-
-			HostedServices = new HostedServices();
-			WalletManager = walletManager;
-
-			var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
-			AllTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-			SmartHeaderChain smartHeaderChain = new(maxChainSize: 20_000);
-			IndexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
-			var mempoolService = new MempoolService();
-			var blocks = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
-
-			BitcoinStore = new BitcoinStore(IndexStore, AllTransactionStore, mempoolService, blocks);
-
-			if (Config.UseTor)
-			{
-				HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () =>
-				{
-					return TorMonitor.RequestFallbackAddressUsage ? Config.GetFallbackBackendUri() : Config.GetCurrentBackendUri();
-				});
-			}
-			else
-			{
-				HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
-			}
-
-			Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
-			TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
-			TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), HttpClientFactory.NewHttpClient(Mode.DefaultCircuit), new XmlIssueListParser());
-
-			RoundStateUpdaterCircuit = new PersonCircuit();
-
-			Cache = new MemoryCache(new MemoryCacheOptions
-			{
-				SizeLimit = 1_000,
-				ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-			});
+			HttpClientFactory = new HttpClientFactory(TorSettings.SocksEndpoint, backendUriGetter: () => Config.GetCurrentBackendUri());
 		}
+		else
+		{
+			HttpClientFactory = new HttpClientFactory(torEndPoint: null, backendUriGetter: () => Config.GetFallbackBackendUri());
+		}
+
+		Synchronizer = new WasabiSynchronizer(BitcoinStore, HttpClientFactory);
+		TransactionBroadcaster = new TransactionBroadcaster(Network, BitcoinStore, HttpClientFactory, WalletManager);
+
+		RoundStateUpdaterCircuit = new PersonCircuit();
+
+		Cache = new MemoryCache(new MemoryCacheOptions
+		{
+			SizeLimit = 1_000,
+			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+		});
 	}
 
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="StoppingCts"/> that might have already been disposed.</remarks>
@@ -218,12 +211,9 @@ public class Global
 	{
 		if (Config.UseTor && Network != Network.RegTest)
 		{
-			using (BenchmarkLogger.Measure(operationName: "TorProcessManager.Start"))
-			{
-				TorManager = new TorProcessManager(TorSettings);
-				await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
-				Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
-			}
+			TorManager = new TorProcessManager(TorSettings);
+            await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
 			HostedServices.Register<TorMonitor>(() => new TorMonitor(period: TimeSpan.FromMinutes(1), Config.GetFallbackBackendUri(), TorManager, HttpClientFactory), nameof(TorMonitor));
 			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");

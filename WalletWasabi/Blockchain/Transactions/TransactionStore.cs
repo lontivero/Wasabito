@@ -31,30 +31,27 @@ public class TransactionStore : IAsyncDisposable
 
 	public async Task InitializeAsync(string workFolderPath, Network network, string operationName, CancellationToken cancel)
 	{
-		using (BenchmarkLogger.Measure(operationName: operationName))
+		WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
+		Network = Guard.NotNull(nameof(network), network);
+
+		var transactionsFilePath = Path.Combine(WorkFolderPath, "Transactions.dat");
+
+		// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
+		TransactionsFileManager = new IoManager(transactionsFilePath);
+
+		cancel.ThrowIfCancellationRequested();
+		using (await TransactionsFileAsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
-			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-			Network = Guard.NotNull(nameof(network), network);
-
-			var transactionsFilePath = Path.Combine(WorkFolderPath, "Transactions.dat");
-
-			// In Transactions.dat every line starts with the tx id, so the first character is the best for digest creation.
-			TransactionsFileManager = new IoManager(transactionsFilePath);
-
+			IoHelpers.EnsureDirectoryExists(WorkFolderPath);
 			cancel.ThrowIfCancellationRequested();
-			using (await TransactionsFileAsyncLock.LockAsync(cancel).ConfigureAwait(false))
+
+			if (!TransactionsFileManager.Exists())
 			{
-				IoHelpers.EnsureDirectoryExists(WorkFolderPath);
+				await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
 				cancel.ThrowIfCancellationRequested();
-
-				if (!TransactionsFileManager.Exists())
-				{
-					await SerializeAllTransactionsNoLockAsync().ConfigureAwait(false);
-					cancel.ThrowIfCancellationRequested();
-				}
-
-				await InitializeTransactionsNoLockAsync(cancel).ConfigureAwait(false);
 			}
+
+			await InitializeTransactionsNoLockAsync(cancel).ConfigureAwait(false);
 		}
 	}
 

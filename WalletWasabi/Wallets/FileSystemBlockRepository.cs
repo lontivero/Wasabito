@@ -20,14 +20,11 @@ public class FileSystemBlockRepository : IRepository<uint256, Block>
 
 	public FileSystemBlockRepository(string blocksFolderPath, Network network, long targetBlocksFolderSizeMb = 300)
 	{
-		using (BenchmarkLogger.Measure())
-		{
-			BlocksFolderPath = blocksFolderPath;
-			Network = network;
-			CreateFolders();
-			EnsureBackwardsCompatibility();
-			Prune(targetBlocksFolderSizeMb);
-		}
+		BlocksFolderPath = blocksFolderPath;
+		Network = network;
+		CreateFolders();
+		EnsureBackwardsCompatibility();
+		Prune(targetBlocksFolderSizeMb);
 	}
 
 	public string BlocksFolderPath { get; }

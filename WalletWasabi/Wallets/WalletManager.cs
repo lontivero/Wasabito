@@ -25,15 +25,12 @@ public class WalletManager
 
 	public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
 	{
-		using (BenchmarkLogger.Measure())
-		{
-			Network = Guard.NotNull(nameof(network), network);
-			WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
-			Directory.CreateDirectory(WorkDir);
-			WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
+		Network = Guard.NotNull(nameof(network), network);
+		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+		Directory.CreateDirectory(WorkDir);
+		WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
 
-			RefreshWalletList();
-		}
+		RefreshWalletList();
 	}
 
 	/// <summary>
