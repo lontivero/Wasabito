@@ -63,17 +63,7 @@ public partial class LoginViewModel : RoutableViewModel
 			await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
 		}
 
-		var legalResult = await ShowLegalAsync();
-
-		if (legalResult)
-		{
-			LoginWallet(closedWalletViewModel);
-		}
-		else
-		{
-			wallet.Logout();
-			ErrorMessage = "You must accept the Terms and Conditions!";
-		}
+		LoginWallet(closedWalletViewModel);
 	}
 
 	private void OnOk()
@@ -91,24 +81,5 @@ public partial class LoginViewModel : RoutableViewModel
 	{
 		closedWalletViewModel.RaisePropertyChanged(nameof(WalletViewModelBase.IsLoggedIn));
 		Navigate().To(closedWalletViewModel, NavigationMode.Clear);
-	}
-
-	private async Task<bool> ShowLegalAsync()
-	{
-		if (!Services.LegalChecker.TryGetNewLegalDocs(out _))
-		{
-			return true;
-		}
-
-		var legalDocs = new TermsAndConditionsViewModel();
-
-		var dialogResult = await NavigateDialogAsync(legalDocs, NavigationTarget.DialogScreen);
-
-		if (dialogResult.Result)
-		{
-			await Services.LegalChecker.AgreeAsync();
-		}
-
-		return dialogResult.Result;
 	}
 }

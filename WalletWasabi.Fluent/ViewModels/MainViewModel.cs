@@ -232,7 +232,6 @@ public partial class MainViewModel : ViewModelBase
 				return null;
 			});
 
-		LegalDocumentsViewModel.RegisterLazy(() => new LegalDocumentsViewModel());
 		UserSupportViewModel.RegisterLazy(() => new UserSupportViewModel());
 		BugReportLinkViewModel.RegisterLazy(() => new BugReportLinkViewModel());
 		DocsLinkViewModel.RegisterLazy(() => new DocsLinkViewModel());

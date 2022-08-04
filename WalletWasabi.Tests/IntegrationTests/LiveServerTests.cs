@@ -112,7 +112,6 @@ public class LiveServerTests : IAsyncLifetime
 		Assert.InRange(versions.ClientVersion, new(1, 1, 10), new(1, 2));
 		Assert.InRange(versions.ClientVersion, new(1, 1, 10), WalletWasabi.Helpers.Constants.ClientVersion);
 		Assert.Equal(4, versions.BackendMajorVersion);
-		Assert.Equal(new(2, 0), versions.LegalDocumentsVersion);
 	}
 
 	[Theory]
@@ -127,36 +126,15 @@ public class LiveServerTests : IAsyncLifetime
 		Version expectedVersion = new(2, 0);
 		Version expectedClientVersion = new(1, 1, 12, 9);
 		ushort backendVersion = 4;
-		Assert.Equal(new(true, true, expectedVersion, backendVersion, expectedClientVersion), updateStatus);
+		Assert.Equal(new(true, true, backendVersion, expectedClientVersion), updateStatus);
 		Assert.True(updateStatus.BackendCompatible);
 		Assert.True(updateStatus.ClientUpToDate);
-		Assert.Equal(expectedVersion, updateStatus.LegalDocumentsVersion);
 		Assert.Equal(backendVersion, updateStatus.CurrentBackendMajorVersion);
 
 		var versions = await client.GetVersionsAsync(CancellationToken.None);
-		Assert.Equal(versions.LegalDocumentsVersion, updateStatus.LegalDocumentsVersion);
 	}
 
 	#endregion Software
-
-	#region Wasabi
-
-	[Theory]
-	[MemberData(nameof(GetNetworks))]
-	public async Task GetLegalDocumentsTestsAsync(Network network)
-	{
-		TorHttpClient torHttpClient = MakeTorHttpClient(network);
-		WasabiClient client = new(torHttpClient);
-
-		var content = await client.GetLegalDocumentsAsync(CancellationToken.None);
-
-		var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-		Assert.Equal("Last Updated: 2020-04-05", lines[0]);
-		var lineCount = lines.Length;
-		Assert.InRange(lineCount, 100, 1000);
-	}
-
-	#endregion Wasabi
 
 	private TorHttpClient MakeTorHttpClient(Network network)
 	{
