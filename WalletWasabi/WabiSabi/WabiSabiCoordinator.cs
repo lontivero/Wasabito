@@ -24,7 +24,6 @@ public class WabiSabiCoordinator : BackgroundService
 		Warden = new(parameters.UtxoWardenPeriod, parameters.PrisonFilePath, Config);
 		ConfigWatcher = new(parameters.ConfigChangeMonitoringPeriod, Config, () => Logger.LogInfo("WabiSabi configuration has changed."));
 		CoinJoinIdStore = coinJoinIdStore;
-		CoinJoinTransactionArchiver transactionArchiver = new(Path.Combine(parameters.CoordinatorDataDir, "CoinJoinTransactions"));
 
 		CoinJoinFeeRateStatStore = CoinJoinFeeRateStatStore.LoadFromFile(parameters.CoinJoinFeeRateStatStoreFilePath, Config, rpc);
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinFeeRateStatStoreFilePath);
@@ -41,7 +40,6 @@ public class WabiSabiCoordinator : BackgroundService
 			Warden.Prison,
 			coinJoinIdStore,
 			roundParameterFactory,
-			transactionArchiver,
 			coinJoinScriptStore);
 
 		IoHelpers.EnsureContainingDirectoryExists(Parameters.CoinJoinIdStoreFilePath);

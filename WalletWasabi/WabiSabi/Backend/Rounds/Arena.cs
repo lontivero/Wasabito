@@ -31,14 +31,12 @@ public partial class Arena : PeriodicRunner
 		Prison prison,
 		ICoinJoinIdStore coinJoinIdStore,
 		RoundParameterFactory roundParameterFactory,
-		CoinJoinTransactionArchiver? archiver = null,
 		CoinJoinScriptStore? coinJoinScriptStore = null) : base(period)
 	{
 		Network = network;
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
-		TransactionArchiver = archiver;
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
@@ -54,7 +52,6 @@ public partial class Arena : PeriodicRunner
 	private WabiSabiConfig Config { get; }
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
-	private CoinJoinTransactionArchiver? TransactionArchiver { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
@@ -293,12 +290,6 @@ public partial class Arena : PeriodicRunner
 
 					round.LogInfo(
 						$"There are {indistinguishableOutputs.Count(x => x.count == 1)} occurrences of unique outputs.");
-
-					// Store transaction.
-					if (TransactionArchiver is not null)
-					{
-						await TransactionArchiver.StoreJsonAsync(coinjoin).ConfigureAwait(false);
-					}
 
 					// Broadcasting.
 					await Rpc.SendRawTransactionAsync(coinjoin, cancellationToken).ConfigureAwait(false);
