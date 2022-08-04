@@ -62,7 +62,7 @@ public class UiConfig : ConfigBase
 	public bool Oobe
 	{
 		get => _oobe;
-		set => RaiseAndSetIfChanged(ref _oobe, value);
+		set => RaiseAndSetIfChanged(ref _oobe, value, nameof(Oobe));
 	}
 
 	[JsonProperty(PropertyName = "WindowState")]
@@ -70,7 +70,7 @@ public class UiConfig : ConfigBase
 	public string WindowState
 	{
 		get => _windowState;
-		internal set => RaiseAndSetIfChanged(ref _windowState, value);
+		internal set => RaiseAndSetIfChanged(ref _windowState, value, nameof(WindowState));
 	}
 
 	[DefaultValue(2)]
@@ -78,7 +78,7 @@ public class UiConfig : ConfigBase
 	public int FeeTarget
 	{
 		get => _feeTarget;
-		internal set => RaiseAndSetIfChanged(ref _feeTarget, value);
+		internal set => RaiseAndSetIfChanged(ref _feeTarget, value, nameof(FeeTarget));
 	}
 
 	[DefaultValue(0)]
@@ -86,7 +86,7 @@ public class UiConfig : ConfigBase
 	public int FeeDisplayUnit
 	{
 		get => _feeDisplayUnit;
-		set => RaiseAndSetIfChanged(ref _feeDisplayUnit, value);
+		set => RaiseAndSetIfChanged(ref _feeDisplayUnit, value, nameof(FeeDisplayUnit));
 	}
 
 	[DefaultValue(true)]
@@ -94,7 +94,7 @@ public class UiConfig : ConfigBase
 	public bool Autocopy
 	{
 		get => _autocopy;
-		set => RaiseAndSetIfChanged(ref _autocopy, value);
+		set => RaiseAndSetIfChanged(ref _autocopy, value, nameof(Autocopy));
 	}
 
 	[DefaultValue(false)]
@@ -102,7 +102,7 @@ public class UiConfig : ConfigBase
 	public bool AutoPaste
 	{
 		get => _autoPaste;
-		set => RaiseAndSetIfChanged(ref _autoPaste, value);
+		set => RaiseAndSetIfChanged(ref _autoPaste, value, nameof(AutoPaste));
 	}
 
 	[DefaultValue(false)]
@@ -110,7 +110,7 @@ public class UiConfig : ConfigBase
 	public bool IsCustomChangeAddress
 	{
 		get => _isCustomChangeAddress;
-		set => RaiseAndSetIfChanged(ref _isCustomChangeAddress, value);
+		set => RaiseAndSetIfChanged(ref _isCustomChangeAddress, value, nameof(IsCustomChangeAddress));
 	}
 
 	[DefaultValue(false)]
@@ -118,7 +118,7 @@ public class UiConfig : ConfigBase
 	public bool PrivacyMode
 	{
 		get => _privacyMode;
-		set => RaiseAndSetIfChanged(ref _privacyMode, value);
+		set => RaiseAndSetIfChanged(ref _privacyMode, value, nameof(PrivacyMode));
 	}
 
 	[DefaultValue(true)]
@@ -126,7 +126,7 @@ public class UiConfig : ConfigBase
 	public bool DarkModeEnabled
 	{
 		get => _darkModeEnabled;
-		set => RaiseAndSetIfChanged(ref _darkModeEnabled, value);
+		set => RaiseAndSetIfChanged(ref _darkModeEnabled, value, nameof(DarkModeEnabled));
 	}
 
 	[DefaultValue(null)]
@@ -134,7 +134,7 @@ public class UiConfig : ConfigBase
 	public string? LastSelectedWallet
 	{
 		get => _lastSelectedWallet;
-		set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
+		set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value, nameof(LastSelectedWallet));
 	}
 
 	[DefaultValue(false)]
@@ -142,7 +142,7 @@ public class UiConfig : ConfigBase
 	public bool RunOnSystemStartup
 	{
 		get => _runOnSystemStartup;
-		set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value);
+		set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value, nameof(RunOnSystemStartup));
 	}
 
 	[DefaultValue(true)]
@@ -150,7 +150,7 @@ public class UiConfig : ConfigBase
 	public bool HideOnClose
 	{
 		get => _hideOnClose;
-		set => RaiseAndSetIfChanged(ref _hideOnClose, value);
+		set => RaiseAndSetIfChanged(ref _hideOnClose, value, nameof(HideOnClose));
 	}
 
 	[DefaultValue(false)]
@@ -158,6 +158,6 @@ public class UiConfig : ConfigBase
 	public bool SendAmountConversionReversed
 	{
 		get => _sendAmountConversionReversed;
-		internal set => RaiseAndSetIfChanged(ref _sendAmountConversionReversed, value);
+		internal set => RaiseAndSetIfChanged(ref _sendAmountConversionReversed, value, nameof(SendAmountConversionReversed));
 	}
 }

@@ -56,7 +56,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	public Cluster Cluster
 	{
 		get => _cluster;
-		set => RaiseAndSetIfChanged(ref _cluster, value);
+		set => RaiseAndSetIfChanged(ref _cluster, value, nameof(Cluster));
 	}
 
 	public HashSet<uint256> OutputAnonSetReasons { get; } = new();
@@ -64,7 +64,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	public double AnonymitySet
 	{
 		get => _anonymitySet;
-		private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
+		private set => RaiseAndSetIfChanged(ref _anonymitySet, value, nameof(AnonymitySet));
 	}
 
 	public HashSet<SmartCoin> Coins { get; } = new HashSet<SmartCoin>();

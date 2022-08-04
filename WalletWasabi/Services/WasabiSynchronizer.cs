@@ -74,13 +74,13 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public decimal UsdExchangeRate
 	{
 		get => _usdExchangeRate;
-		private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
+		private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value, nameof(UsdExchangeRate));
 	}
 
 	public TorStatus TorStatus
 	{
 		get => _torStatus;
-		private set => RaiseAndSetIfChanged(ref _torStatus, value);
+		private set => RaiseAndSetIfChanged(ref _torStatus, value, nameof(TorStatus));
 	}
 
 	public BackendStatus BackendStatus
@@ -88,7 +88,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 		get => _backendStatus;
 		private set
 		{
-			if (RaiseAndSetIfChanged(ref _backendStatus, value))
+			if (RaiseAndSetIfChanged(ref _backendStatus, value, nameof(BackendStatus)))
 			{
 				BackendStatusChangedAt = DateTimeOffset.UtcNow;
 			}

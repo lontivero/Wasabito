@@ -67,7 +67,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		get => _height;
 		set
 		{
-			if (RaiseAndSetIfChanged(ref _height, value))
+			if (RaiseAndSetIfChanged(ref _height, value, nameof(Height)))
 			{
 				Confirmed = _height.Type == HeightType.Chain;
 			}
@@ -81,7 +81,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		{
 			if (value?.TryAddWalletInput(this) is true)
 			{
-				RaiseAndSetIfChanged(ref _spenderTransaction, value);
+				RaiseAndSetIfChanged(ref _spenderTransaction, value, nameof(SpenderTransaction));
 			}
 		}
 	}
@@ -95,7 +95,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool CoinJoinInProgress
 	{
 		get => _coinJoinInProgress;
-		set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
+		set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value, nameof(CoinJoinInProgress));
 	}
 
 	public DateTimeOffset? BannedUntilUtc
@@ -103,7 +103,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		get => _bannedUntilUtc;
 		set
 		{
-			if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
+			if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value, nameof(BannedUntilUtc)))
 			{
 				RefreshAndGetIsBanned();
 			}
@@ -116,7 +116,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool SpentAccordingToBackend
 	{
 		get => _spentAccordingToBackend;
-		set => RaiseAndSetIfChanged(ref _spentAccordingToBackend, value);
+		set => RaiseAndSetIfChanged(ref _spentAccordingToBackend, value, nameof(SpentAccordingToBackend));
 	}
 
 	public HdPubKey HdPubKey { get; }
@@ -128,13 +128,13 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public ISecret? Secret
 	{
 		get => _secret;
-		set => RaiseAndSetIfChanged(ref _secret, value);
+		set => RaiseAndSetIfChanged(ref _secret, value, nameof(Secret));
 	}
 
 	public bool Confirmed
 	{
 		get => _confirmed;
-		private set => RaiseAndSetIfChanged(ref _confirmed, value);
+		private set => RaiseAndSetIfChanged(ref _confirmed, value, nameof(Confirmed));
 	}
 
 	/// <summary>
@@ -143,7 +143,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public bool IsBanned
 	{
 		get => RefreshAndGetIsBanned();
-		private set => RaiseAndSetIfChanged(ref _isBanned, value);
+		private set => RaiseAndSetIfChanged(ref _isBanned, value, nameof(IsBanned));
 	}
 
 	public bool IsImmature(int bestHeight)

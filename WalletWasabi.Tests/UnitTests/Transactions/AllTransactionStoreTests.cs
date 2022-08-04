@@ -28,9 +28,9 @@ public class AllTransactionStoreTests
 		return new SmartTransaction(tx, new Height(height), blockHash);
 	}
 
-	private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+	private void PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, string path)
 	{
-		dir = PrepareWorkDir(EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
+		dir = PrepareWorkDir(path);
 		network = Network.TestNet;
 		mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
 		txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
@@ -45,9 +45,9 @@ public class AllTransactionStoreTests
 		cTx3 = SmartTransaction.FromLine("ebcef423f6b03ef89dce076b53e624c966381f76e5d8b2b5034d3615ae950b2f:01000000000101296d58df626f1e250c661bd45497d159647526eb8166aec86852eb37104c37950100000000ffffffff01facb100300000000160014d5461e0e7077d62c4cf9c18a4e9ba10efd4930340247304402206d2c5b2b182474531ed07587e44ea22b136a37d5ddbd35aa2d984da7be5f7e5202202abd8435d9856e3d0892dbd54e9c05f2a20d9d5f333247314b925947a480a2eb01210321dd0574c773a35d4a7ebf17bf8f974b5665c0183598f1db53153e74c876768500000000:1580673:0000000017b09a77b815f3df513ff698d1f3b0e8c5e16ac0d6558e2d831f3bf9:130::1570462988:False", network);
 	}
 
-	private string PrepareWorkDir([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+	private string PrepareWorkDir(string path)
 	{
-		string dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName));
+		string dir = Path.Combine(Common.GetWorkDir(path));
 		if (Directory.Exists(dir))
 		{
 			Directory.Delete(dir, true);
@@ -77,7 +77,7 @@ public class AllTransactionStoreTests
 	[MemberData(nameof(GetDifferentNetworkValues))]
 	public async Task CanInitializeEmptyAsync(Network network)
 	{
-		var dir = PrepareWorkDir();
+		var dir = PrepareWorkDir(nameof(CanInitializeEmptyAsync));
 		await using var txStore = new AllTransactionStore(dir, network);
 		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
 
@@ -109,7 +109,7 @@ public class AllTransactionStoreTests
 	[Fact]
 	public async Task CanInitializeAsync()
 	{
-		string dir = PrepareWorkDir();
+		string dir = PrepareWorkDir(nameof(CanInitializeAsync));
 		var network = Network.TestNet;
 		var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
 		var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
@@ -176,7 +176,7 @@ public class AllTransactionStoreTests
 	[Fact]
 	public async Task CorrectsMempoolConfSeparateDupAsync()
 	{
-		PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3);
+		PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, nameof(CorrectsMempoolConfSeparateDupAsync));
 
 		// Duplication in mempoool and confirmedtxs.
 		var mempoolFileContent = new[]
@@ -210,7 +210,7 @@ public class AllTransactionStoreTests
 	[Fact]
 	public async Task CorrectsLabelDupAsync()
 	{
-		PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3);
+		PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, nameof(CorrectsLabelDupAsync));
 
 		// Duplication is resolved with labels merged.
 		var mempoolFileContent = new[]
@@ -249,7 +249,7 @@ public class AllTransactionStoreTests
 	[Fact]
 	public async Task CorrectsMempoolConfBetweenDupAsync()
 	{
-		PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3);
+		PrepareTestEnv(out string dir, out Network network, out string mempoolFile, out string txFile, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3, nameof(CorrectsMempoolConfBetweenDupAsync));
 
 		// Duplication between mempool and confirmed txs.
 		var mempoolFileContent = new[]
@@ -280,7 +280,7 @@ public class AllTransactionStoreTests
 	[Fact]
 	public async Task CorrectsOrderAsync()
 	{
-		string dir = PrepareWorkDir();
+		string dir = PrepareWorkDir(nameof(CorrectsOrderAsync));
 		var network = Network.TestNet;
 		var mempoolFile = Path.Combine(dir, "Mempool", "Transactions.dat");
 		var txFile = Path.Combine(dir, "ConfirmedTransactions", Constants.ConfirmedTransactionsVersion, "Transactions.dat");
@@ -331,7 +331,7 @@ public class AllTransactionStoreTests
 			Assert.Equal(expectedArray, txs);
 		}
 
-		await using (var txStore = new AllTransactionStore(PrepareWorkDir(), network))
+		await using (var txStore = new AllTransactionStore(PrepareWorkDir(nameof(CorrectsOrderAsync)), network))
 		{
 			await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
 
@@ -354,7 +354,7 @@ public class AllTransactionStoreTests
 	[MemberData(nameof(GetDifferentNetworkValues))]
 	public async Task DoesntUpdateAsync(Network network)
 	{
-		await using var txStore = new AllTransactionStore(PrepareWorkDir(), network);
+		await using var txStore = new AllTransactionStore(PrepareWorkDir(nameof(DoesntUpdateAsync)), network);
 		await txStore.InitializeAsync(ensureBackwardsCompatibility: false);
 
 		var tx = BitcoinFactory.CreateSmartTransaction();
@@ -390,7 +390,8 @@ public class AllTransactionStoreTests
 			out SmartTransaction uTx3,
 			out SmartTransaction _,
 			out SmartTransaction cTx2,
-			out SmartTransaction cTx3);
+			out SmartTransaction cTx3,
+			nameof(ReorgAsync));
 
 		// Duplication is resolved with labels merged.
 		var mempoolFileContent = new[]
@@ -450,7 +451,7 @@ public class AllTransactionStoreTests
 	{
 		int blocks = 300;
 		int transactionsPerBlock = 3;
-		string dir = PrepareWorkDir();
+		string dir = PrepareWorkDir(nameof(ReorgSameBlockAgainAsync));
 
 		var network = Network.Main;
 		await using var txStore = new AllTransactionStore(dir, network);

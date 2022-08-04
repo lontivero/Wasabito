@@ -13,7 +13,6 @@
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<RuntimeIdentifiers>win7-x64;linux-x64;osx-x64;osx-arm64;</RuntimeIdentifiers>
-		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Packager</PathMap>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -13,7 +13,7 @@ public class MirrorMempoolTests
 	[Fact]
 	public async Task CanCopyMempoolFromRpcAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanCopyMempoolFromRpcAsync));
 		using HostedServices services = new();
 		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 		try
@@ -54,7 +54,7 @@ public class MirrorMempoolTests
 	[Fact]
 	public async Task CanHandleArrivingTxAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanHandleArrivingTxAsync));
 		using HostedServices services = new();
 		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 		try
@@ -92,7 +92,7 @@ public class MirrorMempoolTests
 	[Fact]
 	public async Task CanHandleTheSameTxSentManyTimesAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanHandleTheSameTxSentManyTimesAsync));
 		using HostedServices services = new();
 		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 		try
@@ -145,7 +145,7 @@ public class MirrorMempoolTests
 	[Fact]
 	public async Task CanHandleManyTxsAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanHandleManyTxsAsync));
 		using HostedServices services = new();
 		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 		try
@@ -191,7 +191,7 @@ public class MirrorMempoolTests
 	[Fact]
 	public async Task CanHandleConfirmationAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanHandleConfirmationAsync));
 		using HostedServices services = new();
 		services.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(2), coreNode.RpcClient, coreNode.P2pNode), "Mempool Mirror");
 		try

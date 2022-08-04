@@ -25,7 +25,7 @@ public class Cluster : NotifyPropertyChangedBase, IEquatable<Cluster>
 	public SmartLabel Labels
 	{
 		get => _labels;
-		private set => RaiseAndSetIfChanged(ref _labels, value);
+		private set => RaiseAndSetIfChanged(ref _labels, value, nameof(Labels));
 	}
 
 	private object Lock { get; }

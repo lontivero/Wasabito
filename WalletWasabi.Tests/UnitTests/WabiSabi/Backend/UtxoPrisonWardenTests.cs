@@ -14,7 +14,7 @@ public class UtxoPrisonWardenTests
 	[Fact]
 	public async Task CanStartAndStopAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(CanStartAndStopAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
 		using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
@@ -25,7 +25,7 @@ public class UtxoPrisonWardenTests
 	[Fact]
 	public async Task PrisonSerializationAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(PrisonSerializationAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		// Create prison.
@@ -62,7 +62,7 @@ public class UtxoPrisonWardenTests
 	public async Task NoPrisonSerializationAsync()
 	{
 		// Don't serialize when there's no change.
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(NoPrisonSerializationAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		// Create prison.
@@ -87,7 +87,7 @@ public class UtxoPrisonWardenTests
 	[Fact]
 	public async Task ReleasesInmatesAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(ReleasesInmatesAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		// Create prison.

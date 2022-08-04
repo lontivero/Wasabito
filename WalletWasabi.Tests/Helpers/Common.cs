@@ -23,9 +23,9 @@ public static class Common
 
 	public static string DataDir => EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
 
-	public static string GetWorkDir([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+	public static string GetWorkDir(string path)
 	{
-		return Path.Combine(DataDir, EnvironmentHelpers.ExtractFileName(callerFilePath), callerMemberName);
+		return Path.Combine(DataDir, path);
 	}
 
 	public static IEnumerable<TResult> Repeat<TResult>(Func<TResult> action, int count)

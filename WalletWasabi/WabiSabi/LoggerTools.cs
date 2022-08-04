@@ -9,32 +9,31 @@ namespace WalletWasabi.WabiSabi;
 
 public static class LoggerTools
 {
-	public static void Log(this Round round, LogLevel logLevel, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
+	public static void Log(this Round round, LogLevel logLevel, string logMessage)
 	{
-		var roundState = RoundState.FromRound(round);
-		roundState.Log(logLevel, logMessage, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		Logger.Log(logLevel, $"Round ({round.Id}): {logMessage}");
 	}
 
-	public static void LogInfo(this Round round, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
+	public static void LogInfo(this Round round, string logMessage)
 	{
-		Log(round, LogLevel.Info, logMessage, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		Log(round, LogLevel.Info, logMessage);
 	}
 
-	public static void LogWarning(this Round round, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
+	public static void LogWarning(this Round round, string logMessage)
 	{
-		Log(round, LogLevel.Warning, logMessage, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		Log(round, LogLevel.Warning, logMessage);
 	}
 
-	public static void LogError(this Round round, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
+	public static void LogError(this Round round, string logMessage)
 	{
-		Log(round, LogLevel.Error, logMessage, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		Log(round, LogLevel.Error, logMessage);
 	}
 
 	public static void Log(this RoundState roundState, LogLevel logLevel, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
 	{
 		string round = roundState.BlameOf == uint256.Zero ? "Round" : "Blame Round";
 
-		Logger.Log(logLevel, $"{round} ({roundState.Id}): {logMessage}", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		Logger.Log(logLevel, $"{round} ({roundState.Id}): {logMessage}");
 	}
 
 	public static void LogInfo(this RoundState roundState, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
@@ -49,7 +48,7 @@ public static class LoggerTools
 
 	public static void Log(this Wallet wallet, LogLevel logLevel, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
 	{
-		Logger.Log(logLevel, $"Wallet ({wallet.WalletName}): {logMessage}", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+		Logger.Log(logLevel, $"Wallet ({wallet.WalletName}): {logMessage}");
 	}
 
 	public static void LogInfo(this Wallet wallet, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)

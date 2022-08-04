@@ -21,7 +21,7 @@ public class ConfigTests
 	[Fact]
 	public async Task CreatesConfigAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(CreatesConfigAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
 		using WabiSabiCoordinator coordinator = CreateWabiSabiCoordinator(coordinatorParameters);
@@ -35,7 +35,7 @@ public class ConfigTests
 	[Fact]
 	public async Task LoadsConfigAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(LoadsConfigAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
 
@@ -63,7 +63,7 @@ public class ConfigTests
 	[Fact]
 	public async Task LoadsIncompleteConfigAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(LoadsIncompleteConfigAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
 
@@ -104,7 +104,7 @@ public class ConfigTests
 	[Fact]
 	public async Task ChecksConfigChangesAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(ChecksConfigChangesAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		CoordinatorParameters coordinatorParameters = new(workDir);

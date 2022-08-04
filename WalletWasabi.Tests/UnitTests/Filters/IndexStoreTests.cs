@@ -20,7 +20,7 @@ public class IndexStoreTests
 	{
 		var network = Network.Main;
 
-		var dir = (await GetIndexStorePathsAsync()).dir;
+		var dir = (await GetIndexStorePathsAsync(nameof(IndexStoreTestsAsync))).dir;
 		if (Directory.Exists(dir))
 		{
 			Directory.Delete(dir, true);
@@ -32,7 +32,7 @@ public class IndexStoreTests
 	[Fact]
 	public async Task InconsistentMatureIndexAsync()
 	{
-		var (dir, matureFilters, _) = await GetIndexStorePathsAsync();
+		var (dir, matureFilters, _) = await GetIndexStorePathsAsync(nameof(InconsistentMatureIndexAsync));
 
 		var network = Network.Main;
 		var headersChain = new SmartHeaderChain();
@@ -59,7 +59,7 @@ public class IndexStoreTests
 	[Fact]
 	public async Task InconsistentImmatureIndexAsync()
 	{
-		var (dir, _, immatureFilters) = await GetIndexStorePathsAsync();
+		var (dir, _, immatureFilters) = await GetIndexStorePathsAsync(nameof(InconsistentImmatureIndexAsync));
 
 		var network = Network.Main;
 		var headersChain = new SmartHeaderChain();
@@ -87,7 +87,7 @@ public class IndexStoreTests
 	[Fact]
 	public async Task GapInIndexAsync()
 	{
-		var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync();
+		var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync(nameof(GapInIndexAsync));
 
 		var network = Network.Main;
 		var headersChain = new SmartHeaderChain();
@@ -119,7 +119,7 @@ public class IndexStoreTests
 	[Fact]
 	public async Task ReceiveNonMatchingFilterAsync()
 	{
-		var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync();
+		var (dir, matureFilters, immatureFilters) = await GetIndexStorePathsAsync(nameof(ReceiveNonMatchingFilterAsync));
 
 		var network = Network.Main;
 		var headersChain = new SmartHeaderChain();
@@ -156,9 +156,9 @@ public class IndexStoreTests
 		Assert.Equal(3u, headersChain.TipHeight);
 	}
 
-	private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+	private async Task<(string dir, string matureFilters, string immatureFilters)> GetIndexStorePathsAsync(string path)
 	{
-		var dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "IndexStore");
+		var dir = Path.Combine(Common.GetWorkDir(path), "IndexStore");
 		await IoHelpers.TryDeleteDirectoryAsync(dir);
 		var matureFilters = Path.Combine(dir, "MatureIndex.dat");
 		var immatureFilters = Path.Combine(dir, "ImmatureIndex.dat");

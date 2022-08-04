@@ -21,7 +21,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task TransactionDoesNotCointainCoinsForTheWalletAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(TransactionDoesNotCointainCoinsForTheWalletAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		// This transaction doesn't have any coin for the wallet. It is not relevant.
@@ -38,7 +38,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task SpendToLegacyScriptsAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(SpendToLegacyScriptsAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 
@@ -55,7 +55,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task UnconfirmedTransactionIsNotSegWitAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(UnconfirmedTransactionIsNotSegWitAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		// No segwit transaction. Ignore it.
@@ -73,7 +73,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ConfirmedTransactionIsNotSegWitAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ConfirmedTransactionIsNotSegWitAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		// No segwit transaction. Ignore it.
@@ -91,7 +91,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ProcessResultAfterConfirmationCorrectAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ProcessResultAfterConfirmationCorrectAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		// An unconfirmed segwit transaction for us
@@ -169,7 +169,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task UpdateTransactionHeightAfterConfirmationAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(UpdateTransactionHeightAfterConfirmationAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		// An unconfirmed segwit transaction for us
@@ -204,7 +204,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task IgnoreDoubleSpendAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(IgnoreDoubleSpendAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
@@ -236,7 +236,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ConfirmedDoubleSpendAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ConfirmedDoubleSpendAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
@@ -315,7 +315,7 @@ public class TransactionProcessorTests
 		//                  +--tx3 (replacement)---> (E)
 		//
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(HandlesRbfAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		int replaceTransactionReceivedCalled = 0;
@@ -395,7 +395,7 @@ public class TransactionProcessorTests
 		//                  |
 		//                  +--tx3 (replacement)---> (E)   { after this tx1 is confirmed }
 		//
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(HandlesConfirmedReplacedTransactionAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		// A confirmed segwit transaction for us
@@ -449,7 +449,7 @@ public class TransactionProcessorTests
 		//                                     |
 		//                                     +--> (C)
 		//
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(RecognizeReplaceableCoinsCorrectlyAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		// A confirmed segwit transaction for us
@@ -493,7 +493,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ConfirmTransactionTestAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ConfirmTransactionTestAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
@@ -578,7 +578,7 @@ public class TransactionProcessorTests
 
 		// Replaces a previous RBF transaction by a new one that contains one more input (higher fee)
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(HandlesBumpFeeAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		Script NewScript(string label) => transactionProcessor.NewKey(label).P2wpkhScript;
 
@@ -640,7 +640,7 @@ public class TransactionProcessorTests
 
 		// Replaces a previous RBF transaction by a new one that contains one less input (higher fee)
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(HandlesRbfWithLessCoinsAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		Script NewScript(string label) => transactionProcessor.NewKey(label).P2wpkhScript;
 
@@ -688,7 +688,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveTransactionForWalletAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ReceiveTransactionForWalletAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		SmartCoin? receivedCoin = null;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) => receivedCoin = e.NewlyReceivedCoins.Single();
@@ -715,7 +715,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task SpendCoinAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(SpendCoinAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		SmartCoin? spentCoin = null;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
@@ -753,7 +753,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task CorrectSpenderAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(CorrectSpenderAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		SmartCoin? spentCoin = null;
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
@@ -797,7 +797,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task CorrectCoinReferenceAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(CorrectCoinReferenceAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var tx0 = CreateCreditingTransaction(transactionProcessor.KeyManager.GetKeys().First().P2wpkhScript, Money.Coins(1.0m));
 		transactionProcessor.Process(tx0);
@@ -827,7 +827,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveTransactionWithDustForWalletAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ReceiveTransactionWithDustForWalletAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
 		{
@@ -857,7 +857,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveManyConsecutiveTransactionWithDustForWalletAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ReceiveManyConsecutiveTransactionWithDustForWalletAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var keys = transactionProcessor.KeyManager.GetKeys();
 
@@ -875,7 +875,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveTransactionWithDustFromOurselvesAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ReceiveTransactionWithDustFromOurselvesAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
 		// The dust coin should raise an event, but it shouldn't be fully processed.
@@ -903,7 +903,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveCoinJoinTransactionAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ReceiveCoinJoinTransactionAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var keys = transactionProcessor.KeyManager.GetKeys();
 
@@ -929,7 +929,7 @@ public class TransactionProcessorTests
 	[Fact]
 	public async Task ReceiveWasabiCoinJoinTransactionAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(ReceiveWasabiCoinJoinTransactionAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var keys = transactionProcessor.KeyManager.GetKeys();
 		var amount = Money.Coins(0.1m);
@@ -965,7 +965,7 @@ public class TransactionProcessorTests
 		//                                                               |
 		//                                                               +---> (change of C - cluster C, B, A)
 		//
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(SimpleDirectClusteringAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var hdPubKey = transactionProcessor.NewKey("A");
 		var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
@@ -1009,7 +1009,7 @@ public class TransactionProcessorTests
 		//                                                                   |        |
 		// --tx4---> (E) ----------------------------------------------------+        +-->(change of F - cluster F, D, A, B, C, E)
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(MultipleDirectClusteringAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var hdPubKey = transactionProcessor.NewKey("A");
 		var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
@@ -1062,7 +1062,7 @@ public class TransactionProcessorTests
 		//
 		// --tx4---> (D - reuse - cluster (D, A, B, C))
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(SameScriptClusteringAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var hdPubKey = transactionProcessor.NewKey("A");
 		var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
@@ -1106,7 +1106,7 @@ public class TransactionProcessorTests
 		//
 		// --tx1---> (A) ---tx2---> (B - cluster (B, A))
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(SameScriptClusterAfterSpendingAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var hdPubKey = transactionProcessor.NewKey("A");
 		var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
@@ -1134,7 +1134,7 @@ public class TransactionProcessorTests
 		// --tx2---> (C) --+    +----tx4 (replacement)---> (pay to D - coins is different order - cluster (D, A, B, C))
 		//
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(SameClusterAfterReplacedByFeeAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var hdPubKey = transactionProcessor.NewKey("A");
 		var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
@@ -1180,7 +1180,7 @@ public class TransactionProcessorTests
 		//                      |
 		// --tx4---> (X) -------+
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(UpdateClusterAfterReplacedByFeeWithNewCoinsAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var hdPubKey = transactionProcessor.NewKey("A");
 		var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
@@ -1231,7 +1231,7 @@ public class TransactionProcessorTests
 		//                      +---- The block is reorg and tx3 is removed
 		//
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(RememberClusteringAfterReorgAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var hdPubKey = transactionProcessor.NewKey("A");
 		var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m), height: 54321);
@@ -1279,7 +1279,7 @@ public class TransactionProcessorTests
 		//
 		// Note: tx1 is a coinjoin transaction
 
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(EnoughAnonymitySetClusteringAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		var hdPubKey = transactionProcessor.NewKey("A");
 		var tx0 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
@@ -1315,7 +1315,7 @@ public class TransactionProcessorTests
 	public async Task GetPocketsAsync()
 	{
 		int targetAnonSet = 60;
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(GetPocketsAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m)));
 		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m)));
@@ -1391,9 +1391,9 @@ public class TransactionProcessorTests
 		return new OutPoint(RandomUtils.GetUInt256(), 0);
 	}
 
-	private async Task<AllTransactionStore> CreateTransactionStoreAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+	private async Task<AllTransactionStore> CreateTransactionStoreAsync(string path)
 	{
-		string dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), "TransactionStore");
+		string dir = Path.Combine(Common.GetWorkDir(path), "TransactionStore");
 		await IoHelpers.TryDeleteDirectoryAsync(dir);
 		AllTransactionStore txStore = new(dir, Network.RegTest);
 		await txStore.InitializeAsync();

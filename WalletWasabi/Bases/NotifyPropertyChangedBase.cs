@@ -10,12 +10,12 @@ public abstract class NotifyPropertyChangedBase : INotifyPropertyChanged
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
-	protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	protected void OnPropertyChanged(string propertyName)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
-	protected bool RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	protected bool RaiseAndSetIfChanged<T>(ref T field, T value, string propertyName)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value))
 		{

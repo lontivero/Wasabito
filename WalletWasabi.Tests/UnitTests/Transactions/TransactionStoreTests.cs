@@ -14,7 +14,7 @@ public class TransactionStoreTests
 	[Fact]
 	public async Task CanInitializeAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(CanInitializeAsync));
 
 		Assert.Equal(Network.Main, txStore.Network);
 		Assert.Empty(txStore.GetTransactionHashes());
@@ -29,7 +29,7 @@ public class TransactionStoreTests
 	[Fact]
 	public async Task CanDoOperationsAsync()
 	{
-		await using var txStore = await CreateTransactionStoreAsync();
+		await using var txStore = await CreateTransactionStoreAsync(nameof(CanDoOperationsAsync));
 
 		Assert.True(txStore.IsEmpty());
 
@@ -78,10 +78,10 @@ public class TransactionStoreTests
 		Assert.Single(txStore.GetTransactionHashes());
 	}
 
-	private static async Task<TransactionStore> CreateTransactionStoreAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
+	private static async Task<TransactionStore> CreateTransactionStoreAsync(string path)
 	{
 		// Make sure starts with clear state.
-		var dir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName));
+		var dir = Path.Combine(Common.GetWorkDir(path));
 		var filePath = Path.Combine(dir, "Transactions.dat");
 		if (File.Exists(filePath))
 		{

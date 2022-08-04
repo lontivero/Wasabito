@@ -152,7 +152,7 @@ public class RpcBasedTests
 	[Fact]
 	public async Task AllFeeEstimateAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(AllFeeEstimateAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -176,7 +176,7 @@ public class RpcBasedTests
 	[Fact]
 	public async Task FeeEstimationCanCancelAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(FeeEstimationCanCancelAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -192,7 +192,7 @@ public class RpcBasedTests
 	[Fact]
 	public async Task CantDoubleSpendAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CantDoubleSpendAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -234,7 +234,7 @@ public class RpcBasedTests
 	[Fact]
 	public async Task VerboseBlockInfoAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(VerboseBlockInfoAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;
@@ -276,7 +276,7 @@ public class RpcBasedTests
 	[Fact]
 	public async Task GetRawTransactionsAsync()
 	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
+		var coreNode = await TestNodeBuilder.CreateAsync(nameof(GetRawTransactionsAsync));
 		try
 		{
 			var rpc = coreNode.RpcClient;

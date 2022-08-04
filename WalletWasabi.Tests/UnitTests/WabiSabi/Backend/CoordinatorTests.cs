@@ -18,7 +18,7 @@ public class CoordinatorTests
 	[Fact]
 	public async Task CanLiveAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(CanLiveAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
 		using WabiSabiCoordinator coordinator = CreateWabiSabiCoordinator(coordinatorParameters);
@@ -29,7 +29,7 @@ public class CoordinatorTests
 	[Fact]
 	public async Task CanCancelAsync()
 	{
-		var workDir = Common.GetWorkDir();
+		var workDir = Common.GetWorkDir(nameof(CanCancelAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 		CoordinatorParameters coordinatorParameters = new(workDir);
 
