@@ -55,7 +55,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 	{
 		try
 		{
-			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName).walletFilePath;
+			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(WalletName);
 			var km = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, CancelCts.Token);
 			km.SetIcon(Type);
 

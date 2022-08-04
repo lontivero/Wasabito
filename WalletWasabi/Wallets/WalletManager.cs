@@ -185,39 +185,8 @@ public class WalletManager
 
 	private void AddWallet(string walletName)
 	{
-		(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
-		Wallet wallet;
-		try
-		{
-			wallet = new Wallet(WorkDir, Network, walletFullPath);
-		}
-		catch (Exception ex)
-		{
-			if (!File.Exists(walletBackupFullPath))
-			{
-				throw;
-			}
-
-			Logger.LogWarning($"Wallet got corrupted.\n" +
-				$"Wallet Filepath: {walletFullPath}\n" +
-				$"Trying to recover it from backup.\n" +
-				$"Backup path: {walletBackupFullPath}\n" +
-				$"Exception: {ex}");
-			if (File.Exists(walletFullPath))
-			{
-				string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
-				if (File.Exists(corruptedWalletBackupPath))
-				{
-					File.Delete(corruptedWalletBackupPath);
-					Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
-				}
-				File.Move(walletFullPath, corruptedWalletBackupPath);
-				Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
-			}
-			File.Copy(walletBackupFullPath, walletFullPath);
-
-			wallet = new Wallet(WorkDir, Network, walletFullPath);
-		}
+		string walletFullPath = WalletDirectories.GetWalletFilePaths(walletName);
+		Wallet wallet = new Wallet(WorkDir, Network, walletFullPath);
 
 		AddWallet(wallet);
 	}
@@ -233,7 +202,7 @@ public class WalletManager
 			Wallets.Add(wallet);
 		}
 
-		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.WalletName).walletFilePath))
+		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.WalletName)))
 		{
 			wallet.KeyManager.ToFile();
 		}
@@ -301,9 +270,6 @@ public class WalletManager
 					if (wallet.State >= WalletState.Initialized)
 					{
 						var keyManager = wallet.KeyManager;
-						string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)!).walletBackupFilePath;
-						keyManager.ToFile(backupWalletFilePath);
-						Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
 						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
 					}

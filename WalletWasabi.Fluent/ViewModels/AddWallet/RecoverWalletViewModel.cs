@@ -69,9 +69,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 				var keyManager = await Task.Run(
 					() =>
 					{
-						var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName!)
-						   .walletFilePath;
-
+						var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName!);
 						var result = KeyManager.Recover(
 							CurrentMnemonics!,
 							password!,
