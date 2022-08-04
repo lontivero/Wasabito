@@ -3,7 +3,6 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.AddWallet;
-using WalletWasabi.Fluent.ViewModels.Login.PasswordFinder;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Userfacing;
@@ -17,7 +16,6 @@ public partial class LoginViewModel : RoutableViewModel
 	[AutoNotify] private string _password;
 	[AutoNotify] private bool _isPasswordNeeded;
 	[AutoNotify] private string _errorMessage;
-	[AutoNotify] private bool _isForgotPasswordVisible;
 
 	public LoginViewModel(ClosedWalletViewModel closedWalletViewModel)
 	{
@@ -32,8 +30,6 @@ public partial class LoginViewModel : RoutableViewModel
 
 		OkCommand = ReactiveCommand.Create(OnOk);
 
-		ForgotPasswordCommand = ReactiveCommand.Create(() => OnForgotPassword(wallet));
-
 		EnableAutoBusyOn(NextCommand);
 	}
 
@@ -43,8 +39,6 @@ public partial class LoginViewModel : RoutableViewModel
 
 	public ICommand OkCommand { get; }
 
-	public ICommand ForgotPasswordCommand { get; }
-
 	private async Task OnNextAsync(ClosedWalletViewModel closedWalletViewModel, Wallet wallet)
 	{
 		string? compatibilityPasswordUsed = null;
@@ -53,8 +47,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 		if (!isPasswordCorrect)
 		{
-			IsForgotPasswordVisible = true;
-			ErrorMessage = "The password is incorrect! Please try again.";
+			ErrorMessage = "The password is incorrect! Try Again.";
 			return;
 		}
 
@@ -70,11 +63,6 @@ public partial class LoginViewModel : RoutableViewModel
 	{
 		Password = "";
 		ErrorMessage = "";
-	}
-
-	private void OnForgotPassword(Wallet wallet)
-	{
-		Navigate(NavigationTarget.DialogScreen).To(new PasswordFinderIntroduceViewModel(wallet));
 	}
 
 	private void LoginWallet(ClosedWalletViewModel closedWalletViewModel)
