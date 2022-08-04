@@ -26,7 +26,6 @@
             <StackPanel Spacing="5" Orientation="Horizontal" VerticalAlignment="Top">
               <TextBlock Opacity="0.6" Classes="h8" Text="Balance: "/>
               <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceBtc}"/>
-              <TextBlock Opacity="0.6" Classes="h8" Text="{Binding BalanceFiat}"/>
             </StackPanel>
           </c:PrivacyContentControl>
         </StackPanel>
@@ -102,10 +101,9 @@
                                   KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
                                   IsReadOnly="{Binding IsFixedAmount}"
                                   AmountBtc="{Binding AmountBtc}"
-                                  ConversionRate="{Binding ExchangeRate}"
                                   CurrencyCode="BTC"
                                   ConversionCurrencyCode="USD"
-                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" />
+                                  />
         </DockPanel>
       </DockPanel>
 

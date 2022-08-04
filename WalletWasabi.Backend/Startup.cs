@@ -47,7 +47,6 @@ public class Startup
 
 		services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
-		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		services.AddSingleton<IdempotencyRequestCache>();
 #pragma warning disable CA2000 // Dispose objects before losing scope, reason: https://github.com/dotnet/roslyn-analyzers/issues/3836
 		services.AddSingleton(new Global(Configuration["datadir"]));

@@ -167,11 +167,6 @@ public static class NBitcoinExtensions
 		return Money.Satoshis((me.Satoshi / 100m) * perc);
 	}
 
-	public static decimal ToUsd(this Money me, decimal btcExchangeRate)
-	{
-		return me.ToDecimal(MoneyUnit.BTC) * btcExchangeRate;
-	}
-
 	/// <summary>
 	/// If scriptpubkey is already present, just add the value.
 	/// </summary>
@@ -365,22 +360,6 @@ public static class NBitcoinExtensions
 		}
 
 		return null;
-	}
-
-	private static string ToCurrency(this Money btc, string currency, decimal exchangeRate, bool privacyMode = false)
-	{
-		var dollars = exchangeRate * btc.ToDecimal(MoneyUnit.BTC);
-
-		return privacyMode
-			? $"### {currency}"
-			: exchangeRate == default
-				? $"??? {currency}"
-				: $"{dollars.ToString("N", CurrencyNumberFormat)} {currency}";
-	}
-
-	public static string ToUsdString(this Money btc, decimal usdExchangeRate, bool privacyMode = false)
-	{
-		return ToCurrency(btc, "USD", usdExchangeRate, privacyMode);
 	}
 
 	/// <summary>

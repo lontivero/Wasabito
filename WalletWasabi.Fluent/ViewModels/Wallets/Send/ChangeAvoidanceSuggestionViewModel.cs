@@ -16,30 +16,14 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 {
 	[AutoNotify] private string _amount;
-	[AutoNotify] private string _amountFiat;
-	[AutoNotify] private string? _differenceFiat;
 
 	public ChangeAvoidanceSuggestionViewModel(
 		decimal originalAmount,
-		BuildTransactionResult transactionResult,
-		decimal fiatExchangeRate)
+		BuildTransactionResult transactionResult)
 	{
 		TransactionResult = transactionResult;
 
 		var totalAmount = transactionResult.CalculateDestinationAmount();
-		var total = totalAmount.ToDecimal(MoneyUnit.BTC);
-
-		_amountFiat = total.GenerateFiatText(fiatExchangeRate, "USD");
-
-		var fiatTotal = total * fiatExchangeRate;
-		var fiatOriginal = originalAmount * fiatExchangeRate;
-		var fiatDifference = fiatTotal - fiatOriginal;
-
-		_differenceFiat = (fiatDifference > 0
-				? $"{fiatDifference.GenerateFiatText("USD")} More"
-				: $"{Math.Abs(fiatDifference).GenerateFiatText("USD")} Less")
-			.Replace("(", "").Replace(")", "");
-
 		_amount = $"{totalAmount.ToFormattedString()} BTC";
 	}
 
@@ -51,7 +35,6 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 		Wallet wallet,
 		ImmutableArray<SmartCoin> coinsToUse,
 		int maxInputCount,
-		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		var selections = ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
@@ -95,8 +78,7 @@ public partial class ChangeAvoidanceSuggestionViewModel : SuggestionViewModel
 
 						yield return new ChangeAvoidanceSuggestionViewModel(
 							transactionInfo.Amount.ToDecimal(MoneyUnit.BTC),
-							transaction,
-							usdExchangeRate);
+							transaction);
 					}
 				}
 			}

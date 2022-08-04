@@ -57,13 +57,11 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		var destinationAmount = _transaction.CalculateDestinationAmount();
 		var btcAmountText = $"{destinationAmount.ToFormattedString()} BTC";
-		var fiatAmountText = destinationAmount.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-		AmountText = $"{btcAmountText} {fiatAmountText}";
+		AmountText = $"{btcAmountText}";
 
 		var fee = _transaction.Fee;
 		var feeText = fee.ToFeeDisplayUnitString();
-		var fiatFeeText = fee.ToDecimal(MoneyUnit.BTC).GenerateFiatText(_wallet.Synchronizer.UsdExchangeRate, "USD");
-		FeeText = $"{feeText} {fiatFeeText}";
+		FeeText = $"{feeText}";
 
 		TransactionHasChange =
 			_transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != _address.ScriptPubKey);

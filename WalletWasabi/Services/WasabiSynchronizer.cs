@@ -27,8 +27,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 
 	private const long StateStopped = 3;
 
-	private decimal _usdExchangeRate;
-
 	private TorStatus _torStatus;
 
 	private BackendStatus _backendStatus;
@@ -67,15 +65,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	public HttpClientFactory HttpClientFactory { get; }
 
 	public WasabiClient WasabiClient { get; }
-
-	/// <summary>
-	/// Gets the Bitcoin price in USD.
-	/// </summary>
-	public decimal UsdExchangeRate
-	{
-		get => _usdExchangeRate;
-		private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value, nameof(UsdExchangeRate));
-	}
 
 	public TorStatus TorStatus
 	{
@@ -226,12 +215,6 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 						{
 							ignoreRequestInterval = false;
 						}
-						ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
-						if (exchangeRate is { Rate: > 0 })
-						{
-							UsdExchangeRate = exchangeRate.Rate;
-						}
-
 						await FilterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
 
 						LastResponse = response;

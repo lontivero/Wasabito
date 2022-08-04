@@ -20,10 +20,5 @@ public partial class BtcPriceTileViewModel : TileViewModel
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		base.OnActivated(disposables);
-
-		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(usd => BtcPrice = usd.FormattedFiat(format: "N0") + " USD")
-			.DisposeWith(disposables);
 	}
 }

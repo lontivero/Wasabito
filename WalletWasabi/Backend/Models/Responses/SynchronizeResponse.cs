@@ -17,8 +17,6 @@ public class SynchronizeResponse
 
 	public AllFeeEstimate? AllFeeEstimate { get; set; }
 
-	public IEnumerable<ExchangeRate> ExchangeRates { get; set; }
-
 	[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
 	public IEnumerable<uint256> UnconfirmedCoinJoins { get; set; }
 }

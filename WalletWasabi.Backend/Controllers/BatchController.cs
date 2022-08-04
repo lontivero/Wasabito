@@ -20,18 +20,16 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BatchController : ControllerBase
 {
-	public BatchController(BlockchainController blockchainController, HomeController homeController, OffchainController offchainController, Global global)
+	public BatchController(BlockchainController blockchainController, HomeController homeController, Global global)
 	{
 		BlockchainController = blockchainController;
 		HomeController = homeController;
-		OffchainController = offchainController;
 		Global = global;
 	}
 
 	public Global Global { get; }
 	public BlockchainController BlockchainController { get; }
 	public HomeController HomeController { get; }
-	public OffchainController OffchainController { get; }
 
 	[HttpGet("synchronize")]
 	public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative))
@@ -80,8 +78,6 @@ public class BatchController : ControllerBase
 				Logger.LogError(ex);
 			}
 		}
-
-		response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
 
 		return Ok(response);
 	}

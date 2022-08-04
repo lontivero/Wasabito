@@ -14,15 +14,12 @@
   Requests have the following format: `/api/v4/{coin}/{controller}/`.
   Currently supported coins: `btc`.
 
-  For example requesting exchange rate: `GET /api/v4/btc/offchain/exchange-rates`.
-
 ### Controller: Blockchain, Coin: BTC
 
 | API | Description | Request | Response |
 | --- | ---- | ---- | ---- |
 | GET fees?{comma separated confirmationTargets} | Gets fees for the requested confirmation targets based on Bitcoin Core's `estimatesmartfee` output. |  | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
 | POST broadcast | Attempts to broadcast a transaction. | Hex |  |
-| GET exchange-rates | Gets exchange rates for one Bitcoin. |  | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
 | GET filters/{blockHash} | Gets block filters from the specified block hash. |  | An array of blockHash : filter pairs. |
 
 #### POST filters

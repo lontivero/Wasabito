@@ -45,7 +45,6 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly CoinJoinManager? _coinJoinManager;
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal _amountBtc;
-	[AutoNotify] private decimal _exchangeRate;
 	[AutoNotify] private bool _isFixedAmount;
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
@@ -58,11 +57,10 @@ public partial class SendViewModel : RoutableViewModel
 		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
 		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
 
-		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
+		_conversionReversed = false; // Services.UiConfig.SendAmountConversionReversed;
 
 		IsQrButtonVisible = WebcamQrReader.IsOsPlatformSupported;
 
-		ExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
 		Balance = new WalletBalanceTileViewModel(wallet, balanceChanged, history);
 
@@ -308,11 +306,6 @@ public partial class SendViewModel : RoutableViewModel
 				coinJoinManager.IsUserInSendWorkflow = true;
 			}
 		}
-
-		_wallet.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => ExchangeRate = x)
-			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 

@@ -143,7 +143,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 			filtersCount = sync.BitcoinStore.SmartHeaderChain.HashCount,
 			filtersLeft = sync.BitcoinStore.SmartHeaderChain.HashesLeft,
 			network = Global.Network.Name,
-			exchangeRate = sync.UsdExchangeRate,
 			peers = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(x => new
 			{
 				isConnected = x.IsConnected,
