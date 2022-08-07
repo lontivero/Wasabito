@@ -82,7 +82,7 @@ public class Wallet : BackgroundService
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; private set; }
 
-	public HybridFeeProvider FeeProvider { get; private set; }
+	public IFeeProvider FeeProvider { get; private set; }
 	public FilterModel LastProcessedFilter { get; private set; }
 	public IBlockProvider BlockProvider { get; private set; }
 	private AsyncLock HandleFiltersLock { get; }
@@ -120,7 +120,7 @@ public class Wallet : BackgroundService
 		BitcoinStore bitcoinStore,
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
-		HybridFeeProvider feeProvider,
+		IFeeProvider feeProvider,
 		IBlockProvider blockProvider)
 	{
 		if (State > WalletState.WaitingForInit)
@@ -453,7 +453,7 @@ public class Wallet : BackgroundService
 		State = WalletState.WaitingForInit;
 	}
 
-	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, HybridFeeProvider feeProvider, IBlockProvider blockProvider)
+	public static Wallet CreateAndRegisterServices(Network network, BitcoinStore bitcoinStore, KeyManager keyManager, WasabiSynchronizer synchronizer, string dataDir, ServiceConfiguration serviceConfiguration, IFeeProvider feeProvider, IBlockProvider blockProvider)
 	{
 		var wallet = new Wallet(dataDir, network, keyManager);
 		wallet.RegisterServices(bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockProvider);

@@ -1,9 +1,9 @@
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
-public interface IThirdPartyFeeProvider
+public interface IFeeProvider
 {
 	event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
-	AllFeeEstimate? LastAllFeeEstimate { get; }
+	AllFeeEstimate? AllFeeEstimate { get; }
 	bool InError { get; }
 }

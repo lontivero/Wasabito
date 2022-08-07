@@ -8,9 +8,9 @@ using WalletWasabi.WebClients.BlockstreamInfo;
 
 namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
-public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
+public class FeeProvider : PeriodicRunner, IFeeProvider
 {
-	public ThirdPartyFeeProvider(WasabiSynchronizer synchronizer, BlockstreamInfoFeeProvider blockstreamProvider, TimeSpan? period = null )
+	public FeeProvider(WasabiSynchronizer synchronizer, BlockstreamInfoFeeProvider blockstreamProvider, TimeSpan? period = null )
 		: base(period ?? TimeSpan.FromMinutes(1))
 	{
 		Synchronizer = synchronizer;
@@ -21,15 +21,15 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 
 	public WasabiSynchronizer Synchronizer { get; }
 	public BlockstreamInfoFeeProvider BlockstreamProvider { get; }
-	public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
+	public AllFeeEstimate? AllFeeEstimate { get; private set; }
 	private object Lock { get; } = new object();
 	public bool InError { get; private set; }
 	private AbandonedTasks ProcessingEvents { get; } = new();
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		SetAllFeeEstimateIfLooksBetter(Synchronizer.LastAllFeeEstimate);
-		SetAllFeeEstimateIfLooksBetter(BlockstreamProvider.LastAllFeeEstimate);
+		SetAllFeeEstimateIfLooksBetter(Synchronizer.AllFeeEstimate);
+		SetAllFeeEstimateIfLooksBetter(BlockstreamProvider.AllFeeEstimate);
 
 		Synchronizer.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
 		BlockstreamProvider.AllFeeEstimateArrived += OnAllFeeEstimateArrived;
@@ -71,7 +71,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 
 	private bool SetAllFeeEstimateIfLooksBetter(AllFeeEstimate? fees)
 	{
-		var current = LastAllFeeEstimate;
+		var current = AllFeeEstimate;
 		if (fees is null
 			|| fees == current
 			|| (current is not null && ((!fees.IsAccurate && current.IsAccurate) || fees.Estimations.Count <= current.Estimations.Count)))
@@ -84,11 +84,11 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	/// <returns>True if changed.</returns>
 	private bool SetAllFeeEstimate(AllFeeEstimate fees)
 	{
-		if (LastAllFeeEstimate == fees)
+		if (AllFeeEstimate == fees)
 		{
 			return false;
 		}
-		LastAllFeeEstimate = fees;
+		AllFeeEstimate = fees;
 		return true;
 	}
 

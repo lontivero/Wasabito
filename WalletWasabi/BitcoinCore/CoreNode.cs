@@ -32,7 +32,6 @@ public class CoreNode
 	public MempoolService MempoolService { get; private set; }
 
 	public CoreConfig Config { get; private set; }
-	public P2pNode P2pNode { get; private set; }
 
 	public static async Task<CoreNode> CreateAsync(CoreNodeParams coreNodeParams, CancellationToken cancel)
 	{
@@ -240,8 +239,6 @@ public class CoreNode
 		}
 		cancel.ThrowIfCancellationRequested();
 
-		coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService);
-		await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 		cancel.ThrowIfCancellationRequested();
 
 		return coreNode;
@@ -285,20 +282,10 @@ public class CoreNode
 		return await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	public async Task DisposeAsync()
-	{
-		var p2pNode = P2pNode;
-		if (p2pNode is { })
-		{
-			await p2pNode.DisposeAsync().ConfigureAwait(false);
-		}
-	}
 
 	/// <param name="onlyOwned">Only stop if this node owns the process.</param>
 	public async Task<bool> TryStopAsync(bool onlyOwned = true)
 	{
-		await DisposeAsync().ConfigureAwait(false);
-
 		BitcoindRpcProcessBridge? bridge = null;
 		if (Bridge is { })
 		{

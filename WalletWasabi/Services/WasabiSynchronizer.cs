@@ -17,7 +17,7 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvider
+public class WasabiSynchronizer : NotifyPropertyChangedBase, IFeeProvider
 {
 	private const long StateNotStarted = 0;
 
@@ -99,7 +99,7 @@ public class WasabiSynchronizer : NotifyPropertyChangedBase, IThirdPartyFeeProvi
 	/// </summary>
 	private CancellationTokenSource StopCts { get; }
 
-	public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
+	public AllFeeEstimate? AllFeeEstimate => LastResponse?.AllFeeEstimate;
 
 	public bool InError => BackendStatus != BackendStatus.Connected;
 

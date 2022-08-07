@@ -64,12 +64,12 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		var feeProvider = _wallet.FeeProvider;
 
-		Observable
-			.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
-			.Select(x => (x.EventArgs as AllFeeEstimate)!.Estimations)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate))
-			.DisposeWith(disposables);
+		// Observable
+		// 	.FromEventPattern(feeProvider, nameof(feeProvider.AllFeeEstimateChanged))
+		// 	.Select(x => (x.EventArgs as AllFeeEstimate)!.Estimations)
+		// 	.ObserveOn(RxApp.MainThreadScheduler)
+		// 	.Subscribe(estimations => FeeChart.UpdateFeeEstimates(TransactionFeeHelper.GetFeeEstimates(_wallet), _transactionInfo.MaximumPossibleFeeRate))
+		// 	.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{

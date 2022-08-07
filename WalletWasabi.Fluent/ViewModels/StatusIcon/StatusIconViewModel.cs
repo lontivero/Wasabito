@@ -124,10 +124,7 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 	{
 		var nodes = Services.GetRequiredService<P2pNetwork>().Nodes.ConnectedNodes;
 		var synchronizer = Services.Synchronizer;
-		var rpcMonitor = Services.GetService<RpcMonitor>();
 		var updateChecker = Services.GetRequiredService<UpdateChecker>();
-
-		BitcoinCoreStatus = rpcMonitor?.RpcStatus ?? RpcStatus.Unresponsive;
 
 		synchronizer.WhenAnyValue(x => x.TorStatus)
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -159,14 +156,6 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => Peers = synchronizer.TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
 			.DisposeWith(Disposables);
-
-		if (rpcMonitor is { }) // TODO: Is it possible?
-		{
-			Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e => BitcoinCoreStatus = e.EventArgs)
-				.DisposeWith(Disposables);
-		}
 
 		Observable.FromEventPattern<UpdateStatus>(updateChecker, nameof(updateChecker.UpdateStatusChanged))
 			.ObserveOn(RxApp.MainThreadScheduler)

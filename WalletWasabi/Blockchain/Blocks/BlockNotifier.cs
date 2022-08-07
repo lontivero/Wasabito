@@ -12,16 +12,10 @@ namespace WalletWasabi.Blockchain.Blocks;
 
 public class BlockNotifier : PeriodicRunner
 {
-	public BlockNotifier(IRPCClient rpcClient, P2pNode? p2pNode = null, TimeSpan? period = null) : base(period ?? TimeSpan.FromSeconds(7))
+	public BlockNotifier(IRPCClient rpcClient, TimeSpan? period = null) : base(period ?? TimeSpan.FromSeconds(7))
 	{
 		RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
-		P2pNode = p2pNode;
 		ProcessedBlocks = new List<uint256>();
-
-		if (p2pNode is { })
-		{
-			p2pNode.BlockInv += P2pNode_BlockInv;
-		}
 	}
 
 	public event EventHandler<Block>? OnBlock;
@@ -33,20 +27,10 @@ public class BlockNotifier : PeriodicRunner
 
 	private List<uint256> ProcessedBlocks { get; }
 
-	public P2pNode? P2pNode { get; }
 	public uint256 BestBlockHash { get; private set; } = uint256.Zero;
 
 	private uint256? LastInv { get; set; } = null;
 	private object LastInvLock { get; } = new object();
-
-	private void P2pNode_BlockInv(object? sender, uint256 blockHash)
-	{
-		lock (LastInvLock)
-		{
-			LastInv = blockHash;
-		}
-		TriggerRound();
-	}
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -220,10 +204,6 @@ public class BlockNotifier : PeriodicRunner
 
 	public override void Dispose()
 	{
-		if (P2pNode is { })
-		{
-			P2pNode.BlockInv -= P2pNode_BlockInv;
-		}
 		base.Dispose();
 	}
 }

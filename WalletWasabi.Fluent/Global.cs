@@ -41,7 +41,7 @@ public class Global
 
 		Services.WalletManager.RegisterServices(Services.BitcoinStore, Services.Synchronizer,
 			Services.GetRequiredService<ServiceConfiguration>(),
-			Services.GetRequiredService<HybridFeeProvider>(),
+			Services.GetRequiredService<FeeProvider>(),
 			Services.GetRequiredService<CachedBlockProvider>());
 	}
 }

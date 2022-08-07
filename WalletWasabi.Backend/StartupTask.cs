@@ -14,14 +14,12 @@ namespace WalletWasabi.Backend;
 public class StartupTask : IStartupTask
 {
 	private readonly ILogger<StartupTask> _logger;
-	private P2pNode P2PNode { get; }
 	private IndexBuilderService IndexBuilderService { get; }
 	private IRPCClient RpcClient { get; }
 
-	public StartupTask(IRPCClient rpc, P2pNode p2pNode, IndexBuilderService indexBuilderService, ILogger<StartupTask> logger)
+	public StartupTask(IRPCClient rpc, IndexBuilderService indexBuilderService, ILogger<StartupTask> logger)
 	{
 		_logger = logger;
-		P2PNode = p2pNode;
 		IndexBuilderService = indexBuilderService;
 		RpcClient = rpc;
 	}
@@ -35,7 +33,6 @@ public class StartupTask : IStartupTask
 
 		// Make sure RPC works.
 		await AssertRpcNodeFullyInitializedAsync(cancellationToken).ConfigureAwait(false);
-		await P2PNode.ConnectAsync(cancellationToken).ConfigureAwait(false);
 		IndexBuilderService.Synchronize();
 		_logger.LogInformation($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 	}

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
@@ -32,19 +31,16 @@ public class BlockchainController : ControllerBase
 	public BlockchainController(
 		IMemoryCache memoryCache,
 		IRPCClient rpc,
-		MempoolMirror mempoolMirror,
 		IndexBuilderService indexBuilderService,
 		ILogger<BlockchainController> logger)
 	{
 		_logger = logger;
 		Cache = memoryCache;
 		RpcClient = rpc;
-		MempoolMirror = mempoolMirror;
 		IndexBuilderService = indexBuilderService;
 	}
 
 	private IRPCClient RpcClient { get; }
-	public MempoolMirror MempoolMirror { get; }
 	public IndexBuilderService IndexBuilderService { get; }
 
 	private Network Network => RpcClient.Network;
@@ -259,8 +255,7 @@ public class BlockchainController : ControllerBase
 		catch (RPCException ex)
 		{
 			_logger.LogDebug(ex, "Unexpected error.");
-			var spenders = MempoolMirror.GetSpenderTransactions(transaction.Inputs.Select(x => x.PrevOut));
-			return BadRequest($"{ex.Message}:::{string.Join(":::", spenders.Select(x => x.ToHex()))}");
+			return BadRequest("There was an unexcpected error trying to broadcast the transaction.");
 		}
 
 		return Ok("Transaction is successfully broadcasted.");

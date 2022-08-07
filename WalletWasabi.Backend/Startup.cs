@@ -12,22 +12,18 @@ using Microsoft.Extensions.Options;
 using NBitcoin.RPC;
 using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Middlewares;
-using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Extensions;
 using WalletWasabi.TypeConverters;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Models.Serialization;
-using WalletWasabi.WebClients;
 
 [assembly: ApiController]
 
@@ -90,11 +86,9 @@ public class Startup
 		services.AddSingleton<RoundParameterFactory>();
 
 		services.AddBackgroundService<Arena>();
-		services.AddBackgroundService<MempoolMirror>();
 		services.AddBackgroundService<BlockNotifier>();
 
 		services.AddSingleton<MempoolService>();
-		services.AddSingleton<P2pNode>();
 		services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 
 		services.AddSingleton<IdempotencyRequestCache>();

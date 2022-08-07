@@ -6,7 +6,7 @@ using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 namespace WalletWasabi.WebClients.BlockstreamInfo;
 
-public class BlockstreamInfoFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
+public class BlockstreamInfoFeeProvider : PeriodicRunner, IFeeProvider
 {
 	public BlockstreamInfoFeeProvider(BlockstreamInfoClient blockstreamInfoClient, TimeSpan? period = null) : base(period ?? TimeSpan.FromMinutes(3))
 	{
@@ -17,7 +17,7 @@ public class BlockstreamInfoFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
 
 	public BlockstreamInfoClient BlockstreamInfoClient { get; set; }
-	public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
+	public AllFeeEstimate? AllFeeEstimate { get; private set; }
 	public bool InError { get; private set; } = false;
 	public bool IsPaused { get; set; } = false;
 
@@ -30,7 +30,7 @@ public class BlockstreamInfoFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		try
 		{
 			var allFeeEstimate = await BlockstreamInfoClient.GetFeeEstimatesAsync(cancel).ConfigureAwait(false);
-			LastAllFeeEstimate = allFeeEstimate;
+			AllFeeEstimate = allFeeEstimate;
 
 			if (allFeeEstimate.Estimations.Any())
 			{

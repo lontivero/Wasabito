@@ -6,6 +6,8 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
+using NBitcoin.RPC;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
@@ -19,6 +21,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -96,7 +99,11 @@ public class P2pTests
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
 		using HttpClientFactory httpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: () => new Uri("http://localhost:12345"));
 		WasabiSynchronizer synchronizer = new(bitcoinStore, httpClientFactory);
-		var feeProvider = new HybridFeeProvider(synchronizer, null);
+
+		var feeProviderMock = new Mock<IFeeProvider>();
+		feeProviderMock
+			.Setup(x => x.AllFeeEstimate)
+			.Returns(new AllFeeEstimate( EstimateSmartFeeMode.Conservative, new Dictionary<int, int> {{2, 2}}, true));
 
 		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 		CachedBlockProvider blockProvider = new(
@@ -110,7 +117,7 @@ public class P2pTests
 			synchronizer,
 			dataDir,
 			new ServiceConfiguration(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold)),
-			feeProvider,
+			feeProviderMock.Object,
 			blockProvider);
 		Assert.True(Directory.Exists(blocks.BlocksFolderPath));
 

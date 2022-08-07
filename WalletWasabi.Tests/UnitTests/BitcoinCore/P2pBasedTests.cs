@@ -87,57 +87,10 @@ public class P2pBasedTests
 	}
 
 	[Fact]
-	public async Task TrustedNotifierNotifiesTxAsync()
-	{
-		var coreNode = await TestNodeBuilder.CreateAsync(nameof(TrustedNotifierNotifiesTxAsync));
-		try
-		{
-			var rpc = coreNode.RpcClient;
-			var walletName = "wallet";
-			await rpc.CreateWalletAsync(walletName);
-
-			await rpc.GenerateAsync(101);
-			var network = rpc.Network;
-
-			var dir = Common.GetWorkDir(nameof(TrustedNotifierNotifiesTxAsync));
-
-			using Key k = new();
-			var addr = k.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-			var notifier = coreNode.MempoolService;
-
-			var txNum = 10;
-			EventsAwaiter<SmartTransaction> txEventAwaiter = new(
-				h => notifier.TransactionReceived += h,
-				h => notifier.TransactionReceived -= h,
-				txNum);
-
-			List<Task<uint256>> txTasks = new();
-			var batch = rpc.PrepareBatch();
-			for (int i = 0; i < txNum; i++)
-			{
-				txTasks.Add(batch.SendToAddressAsync(addr, Money.Coins(1)));
-			}
-			await batch.SendBatchAsync();
-
-			var arrivedTxs = await txEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-
-			var hashes = await Task.WhenAll(txTasks);
-			foreach (var hash in arrivedTxs.Select(x => x.GetHash()))
-			{
-				Assert.Contains(hash, hashes);
-			}
-		}
-		finally
-		{
-			await coreNode.TryStopAsync();
-		}
-	}
-
-	[Fact]
 	public async Task BlockNotifierTestsAsync()
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync(nameof(BlockNotifierTestsAsync));
-		var blockNotifier = new BlockNotifier(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(7));
+		var blockNotifier = new BlockNotifier(coreNode.RpcClient, period: TimeSpan.FromSeconds(7));
 		await blockNotifier.StartAsync(CancellationToken.None);
 		//var mockServiceProvider = new Mock<IServiceProvider>();
 		//mockServiceProvider.Setup(x => x.GetService(It.IsAny<Type>())).Returns(blockNotifier);

@@ -175,9 +175,8 @@ public class Program
 
 			services.AddSingleton<BlockstreamInfoClient>();
 			services.AddBackgroundService<BlockstreamInfoFeeProvider>();
-			services.AddSingleton<ThirdPartyFeeProvider>();
-			services.AddBackgroundService<IThirdPartyFeeProvider, ThirdPartyFeeProvider>();
-			services.AddBackgroundService<HybridFeeProvider>();
+			services.AddSingleton<FeeProvider>();
+			services.AddBackgroundService<IFeeProvider, FeeProvider>();
 
 			services.AddSingleton<IWabiSabiApiRequestHandler>(p =>
 			{
