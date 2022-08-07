@@ -7,8 +7,6 @@ using Avalonia.Controls.Notifications;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.Fluent.ViewModels;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -54,66 +52,59 @@ public static class NotificationHelpers
 	{
 		message = null;
 
-		try
+		bool isSpent = result.NewlySpentCoins.Any();
+		bool isReceived = result.NewlyReceivedCoins.Any();
+		bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Any();
+		bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Any();
+		Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => x.Coin).ToArray()) ?? Money.Zero;
+
+		if (isReceived || isSpent)
 		{
-			bool isSpent = result.NewlySpentCoins.Any();
-			bool isReceived = result.NewlyReceivedCoins.Any();
-			bool isConfirmedReceive = result.NewlyConfirmedReceivedCoins.Any();
-			bool isConfirmedSpent = result.NewlyConfirmedReceivedCoins.Any();
-			Money miningFee = result.Transaction.Transaction.GetFee(result.SpentCoins.Select(x => (ICoin)x.Coin).ToArray()) ?? Money.Zero;
+			Money receivedSum = result.NewlyReceivedCoins.Sum(x => x.Amount);
+			Money spentSum = result.NewlySpentCoins.Sum(x => x.Amount);
+			Money incoming = receivedSum - spentSum;
+			Money receiveSpentDiff = incoming.Abs();
+			string amountString = receiveSpentDiff.ToFormattedString();
 
-			if (isReceived || isSpent)
+			if (result.Transaction.Transaction.IsCoinBase)
 			{
-				Money receivedSum = result.NewlyReceivedCoins.Sum(x => x.Amount);
-				Money spentSum = result.NewlySpentCoins.Sum(x => x.Amount);
-				Money incoming = receivedSum - spentSum;
-				Money receiveSpentDiff = incoming.Abs();
-				string amountString = receiveSpentDiff.ToFormattedString();
-
-				if (result.Transaction.Transaction.IsCoinBase)
-				{
-					message = $"{amountString} BTC received as Coinbase reward";
-				}
-				else if (isSpent && receiveSpentDiff == miningFee)
-				{
-					message = $"Self transfer";
-				}
-				else if (incoming > Money.Zero)
-				{
-					message = $"{amountString} BTC received";
-				}
-				else if (incoming < Money.Zero)
-				{
-					var sentAmount = receiveSpentDiff - miningFee;
-					message = $"{sentAmount.ToFormattedString()} BTC sent";
-				}
+				message = $"{amountString} BTC received as Coinbase reward";
 			}
-			else if (isConfirmedReceive || isConfirmedSpent)
+			else if (isSpent && receiveSpentDiff == miningFee)
 			{
-				Money receivedSum = result.ReceivedCoins.Sum(x => x.Amount);
-				Money spentSum = result.SpentCoins.Sum(x => x.Amount);
-				Money incoming = receivedSum - spentSum;
-				Money receiveSpentDiff = incoming.Abs();
-				string amountString = receiveSpentDiff.ToFormattedString();
-
-				if (isConfirmedSpent && receiveSpentDiff == miningFee)
-				{
-					message = $"Self transfer confirmed";
-				}
-				else if (incoming > Money.Zero)
-				{
-					message = $"Receiving {amountString} BTC has been confirmed";
-				}
-				else if (incoming < Money.Zero)
-				{
-					var sentAmount = receiveSpentDiff - miningFee;
-					message = $"{sentAmount.ToFormattedString()} BTC sent got confirmed";
-				}
+				message = $"Self transfer";
+			}
+			else if (incoming > Money.Zero)
+			{
+				message = $"{amountString} BTC received";
+			}
+			else if (incoming < Money.Zero)
+			{
+				var sentAmount = receiveSpentDiff - miningFee;
+				message = $"{sentAmount.ToFormattedString()} BTC sent";
 			}
 		}
-		catch (Exception ex)
+		else if (isConfirmedReceive || isConfirmedSpent)
 		{
-			Logger.LogWarning(ex);
+			Money receivedSum = result.ReceivedCoins.Sum(x => x.Amount);
+			Money spentSum = result.SpentCoins.Sum(x => x.Amount);
+			Money incoming = receivedSum - spentSum;
+			Money receiveSpentDiff = incoming.Abs();
+			string amountString = receiveSpentDiff.ToFormattedString();
+
+			if (isConfirmedSpent && receiveSpentDiff == miningFee)
+			{
+				message = $"Self transfer confirmed";
+			}
+			else if (incoming > Money.Zero)
+			{
+				message = $"Receiving {amountString} BTC has been confirmed";
+			}
+			else if (incoming < Money.Zero)
+			{
+				var sentAmount = receiveSpentDiff - miningFee;
+				message = $"{sentAmount.ToFormattedString()} BTC sent got confirmed";
+			}
 		}
 
 		return message is { };

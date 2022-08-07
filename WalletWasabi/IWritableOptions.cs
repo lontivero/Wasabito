@@ -10,22 +10,21 @@ using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi;
 
-public interface IWritableOptions<out T> : IOptions<T> where T : class, new()
+public interface IWritableOptions<out TOptions> : IOptionsSnapshot<TOptions>, IOptionsMonitor<TOptions> where TOptions : class, new()
 { 
-	void Update(Action<T> applyChanges);
+	void Update(Action<TOptions> applyChanges, bool reload = false);
 }
 
-public class WritableOptions<T> : IWritableOptions<T> where T : class, new()
+public class WritableOptions<TOptions> : IWritableOptions<TOptions> where TOptions : class, new()
  {
-     private readonly IConfigurationBuilder _environment;
-     private readonly IOptionsMonitor<T> _options;
-     private readonly IConfigurationRoot _configuration;
+     private readonly IOptionsMonitor<TOptions> _options;
+     private readonly IConfiguration _configuration;
      private readonly string _section;
      private readonly string _file;
 
      public WritableOptions(
-         IOptionsMonitor<T> options,
-         IConfigurationRoot configuration,
+         IOptionsMonitor<TOptions> options,
+         IConfiguration configuration,
          string section,
          string file)
      {
@@ -35,24 +34,24 @@ public class WritableOptions<T> : IWritableOptions<T> where T : class, new()
          _file = file;
      }
 
-     public T Value => _options.CurrentValue;
-     public T Get(string name) => _options.Get(name);
+     public TOptions CurrentValue => _options.CurrentValue;
+     public TOptions Value => _options.CurrentValue;
+     public TOptions Get(string name) => _options.Get(name);
+     public IDisposable OnChange(Action<TOptions, string> listener) => _options.OnChange(listener);
 
-     public void Update(Action<T> applyChanges)
+     public void Update(Action<TOptions> applyChanges, bool reload = false)
      {
-         var fileProvider = _configuration.Providers.OfType<JsonConfigurationProvider>();
-         var fileInfo = fileProvider.First().Source.FileProvider.GetFileInfo(_file);
-         var physicalPath = fileInfo.PhysicalPath;
-
-         var jObject = JsonConvert.DeserializeObject<JObject>(File.ReadAllText(physicalPath));
-         var sectionObject = jObject.TryGetValue(_section, out JToken section) 
-	         ? JsonConvert.DeserializeObject<T>(section.ToString(), JsonSerializationOptions.Default.Settings) 
-	         : (Value ?? new T());
+	     var fileContent = File.Exists(_file)
+		     ? File.ReadAllText(_file)
+			 : "{}";
+         var jObject = JsonConvert.DeserializeObject<JObject>(fileContent, JsonSerializationOptions.Default.Settings);
+         var sectionObject = jObject.TryGetValue(_section, out var section) 
+	         ? JsonConvert.DeserializeObject<TOptions>(section.ToString(), JsonSerializationOptions.Default.Settings) 
+	         : Value;
 
          applyChanges(sectionObject);
 
          jObject[_section] = JObject.Parse(JsonConvert.SerializeObject(sectionObject));
-         File.WriteAllText(physicalPath, JsonConvert.SerializeObject(jObject, Formatting.Indented));
-         _configuration.Reload();
+         File.WriteAllText(_file, JsonConvert.SerializeObject(jObject, Formatting.Indented));
      }
  }

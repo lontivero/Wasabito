@@ -35,7 +35,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	public GeneralSettingsTabViewModel()
 	{
 		_darkModeEnabled = Services.UiConfig.DarkModeEnabled;
-		_autoCopy = Services.UiConfig.Autocopy;
+		_autoCopy = Services.UiConfig.AutoCopy;
 		_autoPaste = Services.UiConfig.AutoPaste;
 		_customChangeAddress = Services.UiConfig.IsCustomChangeAddress;
 		_runOnSystemStartup = Services.UiConfig.RunOnSystemStartup;
@@ -43,8 +43,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		_selectedFeeDisplayUnit = Enum.IsDefined(typeof(FeeDisplayUnit), Services.UiConfig.FeeDisplayUnit)
 			? (FeeDisplayUnit)Services.UiConfig.FeeDisplayUnit
 			: FeeDisplayUnit.Satoshis;
-		_useTor = Services.Config.UseTor;
-		_terminateTorOnExit = Services.Config.TerminateTorOnExit;
+		_useTor = Services.TorOptions.UseTor;
+		_terminateTorOnExit = Services.TorOptions.TerminateOnExit;
 
 		this.WhenAnyValue(x => x.DarkModeEnabled)
 			.Skip(1)
@@ -58,7 +58,7 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 		this.WhenAnyValue(x => x.AutoCopy)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Skip(1)
-			.Subscribe(x => Services.UiConfig.Autocopy = x);
+			.Subscribe(x => Services.UiConfig.AutoCopy = x);
 
 		this.WhenAnyValue(x => x.AutoPaste)
 			.ObserveOn(RxApp.TaskpoolScheduler)
@@ -109,9 +109,8 @@ public partial class GeneralSettingsTabViewModel : SettingsTabViewModelBase
 	public IEnumerable<FeeDisplayUnit> FeeDisplayUnits =>
 		Enum.GetValues(typeof(FeeDisplayUnit)).Cast<FeeDisplayUnit>();
 
-	protected override void EditConfigOnSave(Config config)
+	protected override void EditConfigOnSave()
 	{
-		config.UseTor = UseTor;
-		config.TerminateTorOnExit = TerminateTorOnExit;
+
 	}
 }

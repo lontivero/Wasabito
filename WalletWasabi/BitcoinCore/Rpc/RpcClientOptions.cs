@@ -15,7 +15,8 @@ public class BitcoinOptions
 
 public class BitcoinIntegrationOptions : BitcoinOptions
 {
-	public bool StartLocalBitcoinCoreOnStartup { get; set; }
-	public bool StopLocalBitcoinCoreOnShutdown { get; set; }
+	public bool Enabled { get; set; } = false;  
+	public bool StartLocalBitcoinCoreOnStartup { get; set; } = false;
+	public bool StopLocalBitcoinCoreOnShutdown { get; set; } = true;
 	public string LocalBitcoinCoreDataDir { get; set; }
 }

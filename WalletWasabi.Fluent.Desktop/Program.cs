@@ -1,28 +1,55 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Dialogs;
 using Avalonia.ReactiveUI;
 using System.IO;
-using System.Reactive;
-using System.Reactive.Concurrency;
+using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using ReactiveUI;
-using System.Linq;
 using Avalonia.OpenGL;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using NBitcoin;
+using WalletWasabi.BitcoinCore;
+using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.Mempool;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.CoinJoin.Client;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Rpc;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Rpc;
 using WalletWasabi.Services;
-using WalletWasabi.Services.Terminate;
+using WalletWasabi.Stores;
+using WalletWasabi.Tor;
+using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.TypeConverters;
+using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
-using LogLevel = WalletWasabi.Logging.LogLevel;
+using WalletWasabi.WebClients.BlockstreamInfo;
+using WalletWasabi.WebClients.Wasabi;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using WalletWasabi.Fluent.Desktop.Extensions;
+using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -37,137 +64,220 @@ public class Program
 	{
 		bool runGuiInBackground = args.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 
-		// Initialize the logger.
-		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-		SetupLogger(dataDir, args);
+		//CreateHostBuilder(args).Build().Run();
+		TypeDescriptor.AddAttributes(typeof(Money),new TypeConverterAttribute(typeof(MoneyConverter)));
+		TypeDescriptor.AddAttributes(typeof(ExtPubKey),new TypeConverterAttribute(typeof(ExtPubKeyConverter)));
+		TypeDescriptor.AddAttributes(typeof(Uri),new TypeConverterAttribute(typeof(UriConverter)));
+		TypeDescriptor.AddAttributes(typeof(EndPoint),new TypeConverterAttribute(typeof(EndPointConverter)));
 
-		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none")}.");
+		var config = new ConfigurationBuilder()
+			.AddEnvironmentVariables(prefix: "WWL_")
+			.AddCommandLine(args)
+			.Build();
 
-		(UiConfig uiConfig, Config config) = LoadOrCreateConfigs(dataDir);
+		var dataDirectory = Path.Combine(
+			EnvironmentHelpers.ExpandDirectory(
+				config.GetValue<string>("datadir") ?? EnvironmentHelpers.GetDefaultDataDir()), "client");
 
-		// Now run the GUI application.
-		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
-
-		Exception? exceptionToReport = null;
-		TerminateService terminateService = new(TerminateApplicationAsync, TerminateApplication);
-
-		try
+		var hostBuilder = CreateHostBuilder(args);
+		hostBuilder.ConfigureAppConfiguration(configurationBuilder =>
 		{
-			Global = CreateGlobal(dataDir, uiConfig, config);
-            Services.Initialize(Global);
+			var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+			configurationBuilder
+				.SetBasePath(dataDirectory)
+				.AddJsonFile("config.json", true, true)
+				.AddJsonFile($"config.{environment}.json", true, true)
+				.AddEnvironmentVariables(prefix: "WWL_")
+				.AddCommandLine(args)
+				.Build();
 
-			RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+		});
+		hostBuilder.ConfigureLogging((ctx, logging) =>
+		{
+			logging.AddConfiguration(ctx.Configuration);
+			logging.AddConsole();
+			logging.AddDebug();
+		});
+		hostBuilder.ConfigureServices((ctx, services) =>
+		{
+			services.AddOptions();
+			services.AddLogging(logging =>
+				logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
+
+			// Configurations
+			var configurationRoot = ctx.Configuration;
+			services.ConfigureWritable<GeneralOptions>(configurationRoot);
+			services.ConfigureWritable<JsonRpcServerConfiguration>(configurationRoot);
+			services.ConfigureWritable<CoordinatorOptions>(configurationRoot);
+			services.ConfigureWritable<WalletOptions>(configurationRoot);
+			services.ConfigureWritable<TorOptions>(configurationRoot);
+			services.ConfigureWritable<BitcoinIntegrationOptions>(configurationRoot);
+			services.ConfigureWritable<UiConfig>(configurationRoot);
+
+			GeneralOptions generalOptions = new();
+			ctx.Configuration.GetSection(key: Option2Config(nameof(GeneralOptions))).Bind(generalOptions);
+			var network =  Network.GetNetwork(generalOptions.Network)
+			              ?? throw new ArgumentException("Unsupported Network.");
+
+			services.AddSingleton(_ => network);
+			BitcoinIntegrationOptions bitcoinIntegrationOptions = new();
+			ctx.Configuration.GetSection(key: Option2Config(nameof(BitcoinIntegrationOptions))).Bind(bitcoinIntegrationOptions);
+			services.AddSingleton(p =>
+			{
+				var bitcoinOptions = p.GetRequiredService<IOptions<BitcoinIntegrationOptions>>();
+				var walletOptions = p.GetRequiredService<IOptions<WalletOptions>>();
+				return new ServiceConfiguration(bitcoinOptions.Value.Host,
+					walletOptions.Value.DustThreshold);
+			});
+
+			services.AddSingleton(p =>
+			{
+				var walletOptions = p.GetRequiredService<IOptions<WalletOptions>>();
+				return new WalletDirectories(network, Path.Combine(dataDirectory, walletOptions.Value.Directory));
+			});
+			services.AddSingleton<WalletManager>();
+
+			services.AddSingleton(p =>
+			{
+				var torOptions = p.GetRequiredService<IOptions<TorOptions>>();
+				return new TorSettings(torOptions.Value.DataDirectory ?? dataDirectory, torOptions.Value.TerminateOnExit, Environment.ProcessId);
+			});
+			services.AddSingleton(p => new AllTransactionStore(Path.Combine(dataDirectory, "BitcoinStore", network.ToString()), network));
+
+			services.AddSingleton(p => new IndexStore(Path.Combine(dataDirectory, "IndexStore"), network, new(maxChainSize: 20_000)));
+
+			services.AddSingleton<MempoolService>();
+			services.AddSingleton<IRepository<uint256, Block>>(p => new FileSystemBlockRepository(Path.Combine(dataDirectory, "Blocks"), network));
+			services.AddSingleton<BitcoinStore>();
+
+			services.AddSingleton(p =>
+			{
+				var coordinatorOptions = p.GetRequiredService<IOptions<CoordinatorOptions>>();
+				var torOptions = p.GetRequiredService<IOptions<TorOptions>>();
+				return new HttpClientFactory(torOptions.Value.SocksEndpoint,
+					backendUriGetter: () => coordinatorOptions.Value.Host);
+			});
+
+			services.AddSingleton<IWasabiHttpClientFactory>(p =>
+				p.GetRequiredService<HttpClientFactory>());
+
+			services.AddSingleton<WasabiSynchronizer>();
+			services.AddSingleton<TransactionBroadcaster>();
+
+			services.AddSingleton<IMemoryCache>(p =>
+				new MemoryCache(new MemoryCacheOptions {
+					SizeLimit = 1_000,
+					ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+				}));
+
+			services.AddBackgroundService<UpdateChecker>();
+			services.AddBackgroundService<P2pNetwork>();
+
+			services.AddSingleton<BlockstreamInfoClient>();
+			services.AddBackgroundService<BlockstreamInfoFeeProvider>();
+			services.AddSingleton<ThirdPartyFeeProvider>();
+			services.AddBackgroundService<IThirdPartyFeeProvider, ThirdPartyFeeProvider>();
+			services.AddBackgroundService<HybridFeeProvider>();
+
+			services.AddSingleton<IWabiSabiApiRequestHandler>(p =>
+			{
+				PersonCircuit roundStateUpdaterCircuit = new();
+				HttpClientFactory httpClientFactory = p.GetRequiredService<HttpClientFactory>();
+				var roundStateUpdaterHttpClient = httpClientFactory.NewHttpClient(Mode.SingleCircuitPerLifetime, roundStateUpdaterCircuit);
+				return new WabiSabiHttpApiClient(roundStateUpdaterHttpClient);
+			});
+
+			services.AddBackgroundService<RoundStateUpdater>( );
+			services.AddBackgroundService<CoinJoinManager>();
+			services.AddSingleton<CoinJoinProcessor>();
+
+			if (/*Config.UseTor && */ network != Network.RegTest)
+			{
+				services.AddSingleton(p =>
 				{
-					if (Debugger.IsAttached)
-					{
-						Debugger.Break();
-					}
-
-					Logger.LogError(ex);
-
-					RxApp.MainThreadScheduler.Schedule(() => throw ex);
+					var torSettings = p.GetRequiredService<TorSettings>();
+					var torManager = new TorProcessManager(torSettings);
+					torManager.StartAsync(attempts: 3, CancellationToken.None).GetAwaiter().GetResult();
+					return torManager;
 				});
 
-			Logger.LogSoftwareStarted("Wasabi GUI");
-			AppBuilder
-				.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(terminateService), runGuiInBackground)).UseReactiveUI()
-				.SetupAppBuilder()
-				.AfterSetup(_ =>
-					{
-						var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
-						Logger.LogInfo(glInterface is { }
-							? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
-							: "Renderer: Avalonia Software");
+				services.AddBackgroundService<TorMonitor>();
+			}
 
-						ThemeHelper.ApplyTheme(Global.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
-					})
-					.StartWithClassicDesktopLifetime(args);
-		}
-		catch (OperationCanceledException ex)
+			services.AddSingleton<IJsonRpcService, WasabiJsonRpcService>();
+			services.AddBackgroundService<JsonRpcServer>();
+
+			services.AddSingleton(p =>
+			{
+				var p2pNetwork = p.GetRequiredService<P2pNetwork>();
+				return p2pNetwork.Nodes;
+			});
+			services.AddSingleton<CoreNode>(_=> null!);
+			services.AddSingleton<P2pBlockProvider>();
+			services.AddSingleton<IBlockProvider, SmartBlockProvider>(p =>
+			{
+				var provider = p.GetRequiredService<P2pBlockProvider>();
+				var cache = p.GetRequiredService<IMemoryCache>();
+				return new SmartBlockProvider(provider, cache);
+			});
+			services.AddSingleton<TorStatusChecker>(p =>
+			{
+				HttpClientFactory httpClientFactory = p.GetRequiredService<HttpClientFactory>();
+				return new TorStatusChecker(TimeSpan.FromHours(6), httpClientFactory.NewHttpClient(Mode.DefaultCircuit),
+					new XmlIssueListParser());
+			});
+			services.AddSingleton<CachedBlockProvider>();
+		});
+		var host = hostBuilder.Build();
+		host.Start();
+
+		Logger.LogDebug($"Wasabi was started with these argument(s): {(args.Any() ? string.Join(" ", args) : "none") }.");
+
+		Global = new Global();
+		Services.Initialize(dataDirectory, host.Services);
+
+		RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
 		{
-			Logger.LogDebug(ex);
-		}
-		catch (Exception ex)
-		{
-			exceptionToReport = ex;
-			Logger.LogCritical(ex);
-		}
+			if (Debugger.IsAttached)
+			{
+				Debugger.Break();
+			}
+
+			Logger.LogError(ex);
+
+			RxApp.MainThreadScheduler.Schedule(() => throw ex);
+		});
+
+		Logger.LogSoftwareStarted("Wasabi GUI");
+		AppBuilder
+			.Configure(() => new App(async () => await Global.InitializeNoWalletAsync(), runGuiInBackground)).UseReactiveUI()
+			.SetupAppBuilder()
+			.AfterSetup(_ =>
+				{
+					var glInterface = AvaloniaLocator.CurrentMutable.GetService<IPlatformOpenGlInterface>();
+					Logger.LogInfo(glInterface is { }
+						? $"Renderer: {glInterface.PrimaryContext.GlInterface.Renderer}"
+						: "Renderer: Avalonia Software");
+
+					ThemeHelper.ApplyTheme(Services.UiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+				})
+				.StartWithClassicDesktopLifetime(args);
 
 		// Start termination/disposal of the application.
-		terminateService.Terminate();
-
-		if (exceptionToReport is { })
-		{
-			// Trigger the CrashReport process if required.
-			CrashReporter.Invoke(exceptionToReport);
-		}
-
 		AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
 		Logger.LogSoftwareStopped("Wasabi");
 
-		return exceptionToReport is { } ? 1 : 0;
+		return 0;
 	}
 
-	/// <summary>
-	/// Initializes Wasabi Logger. Sets user-defined log-level, if provided.
-	/// </summary>
-	/// <example>Start Wasabi Wallet with <c>./wassabee --LogLevel=trace</c> to set <see cref="LogLevel.Trace"/>.</example>
-	private static void SetupLogger(string dataDir, string[] args)
-	{
-		LogLevel? logLevel = null;
-
-		foreach (string arg in args)
-		{
-			if (arg.StartsWith("--LogLevel="))
+	public static IHostBuilder CreateHostBuilder(string[] args) =>
+		Host.CreateDefaultBuilder(args)
+			.ConfigureServices((hostContext, services) =>
 			{
-				string value = arg.Split('=', count: 2)[1];
-
-				if (Enum.TryParse(value, ignoreCase: true, out LogLevel parsedLevel))
-				{
-					logLevel = parsedLevel;
-					break;
-				}
-			}
-		}
-
-		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"), logLevel);
-	}
-
-	private static (UiConfig uiConfig, Config config) LoadOrCreateConfigs(string dataDir)
-	{
-		Directory.CreateDirectory(dataDir);
-
-		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
-		uiConfig.LoadOrCreateDefaultFile();
-
-		Config config = new(Path.Combine(dataDir, "Config.json"));
-		config.LoadOrCreateDefaultFile();
-
-		return (uiConfig, config);
-	}
-
-	private static Global CreateGlobal(string dataDir, UiConfig uiConfig, Config config)
-	{
-		var walletManager = new WalletManager(config.Network, dataDir, new WalletDirectories(config.Network, dataDir));
-
-		return new Global(dataDir, config, uiConfig, walletManager);
-	}
-
-	/// <summary>
-	/// Do not call this method it should only be called by TerminateService.
-	/// </summary>
-	private static async Task TerminateApplicationAsync()
-	{
-		Logger.LogSoftwareStopped("Wasabi GUI");
-
-		if (Global is { } global)
-		{
-			await global.DisposeAsync().ConfigureAwait(false);
-		}
-	}
+				//services.AddHostedService<Worker>();
+			});
 
 	private static void TerminateApplication()
 	{
@@ -221,4 +331,13 @@ public class Program
 			.With(new MacOSPlatformOptions { ShowInDock = true })
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
 	}
+
+	private static string Option2Config(string name) =>
+		name switch
+		{
+			_ when name.EndsWith("Options") => name[..^"Options".Length],
+			_ when name.EndsWith("Config") => name[..^"Config".Length],
+			_ when name.EndsWith("Configuration") => name[..^"Configuration".Length],
+			_ => name
+		};
 }

@@ -66,7 +66,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_countdownTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 		_countdownTimer.Tick += OnTimerTick;
 
-		var coinJoinManager = Services.HostedServices.Get<CoinJoinManager>();
+		var coinJoinManager = Services.GetRequiredService<CoinJoinManager>();
 
 		Observable.FromEventPattern<StatusChangedEventArgs>(coinJoinManager, nameof(coinJoinManager.StatusChanged))
 			.Where(x => x.EventArgs.Wallet == walletVm.Wallet)

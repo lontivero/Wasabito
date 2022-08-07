@@ -137,4 +137,16 @@ public class Prison
 			return Inmates.Select(x => x.Value).ToList();
 		}
 	}
+
+	public void Assert(OutPoint input, bool allowNotedRegistration)
+	{
+		if (TryGet(input, out var inmate) && (!allowNotedRegistration || inmate.Punishment != Punishment.Noted))
+		{
+			if (!allowNotedRegistration || inmate.Punishment != Punishment.Noted)
+			{
+				var bannedUntil = inmate.Started + TimeSpan.FromDays(1); // FIXME Config.ReleaseUtxoFromPrisonAfter;
+				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
+			}
+		}
+	}
 }

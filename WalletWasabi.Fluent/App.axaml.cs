@@ -6,6 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels;
+using WalletWasabi.Fluent.Views;
 
 namespace WalletWasabi.Fluent;
 

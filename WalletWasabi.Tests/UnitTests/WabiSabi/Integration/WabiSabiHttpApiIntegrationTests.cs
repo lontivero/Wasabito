@@ -92,7 +92,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () =>
 			await apiClient.RegisterInputAsync(round.Id, bannedOutPoint, ownershipProof, timeoutCts.Token));
 
-		Assert.Equal(WabiSabiProtocolErrorCode.InputLongBanned, ex.ErrorCode);
+		Assert.Equal(WabiSabiProtocolErrorCode.InputBanned, ex.ErrorCode);
 		var inputBannedData = Assert.IsType<InputBannedExceptionData>(ex.ExceptionData);
 		Assert.True(inputBannedData.BannedUntil > DateTimeOffset.UtcNow);
 	}
@@ -133,10 +133,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				})
 			.ConfigureServices(services =>
 			{
-				// Instruct the coordinator DI container to use these two scoped
-				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddScoped<IRPCClient>(s => rpc);
-
 				services.AddScoped<IOptionsMonitor<WabiSabiConfig>>(_ => new TesteableOptionsMonitor<WabiSabiConfig>(new ()
 				{
 					MaxInputCountByRound = inputCount - 1,  // Make sure that at least one IR fails for WrongPhase
@@ -169,7 +165,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
-		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
+		using var roundStateUpdater = new RoundStateUpdater(apiClient, period: TimeSpan.FromSeconds(1));
 
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
@@ -217,7 +213,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				// Instruct the coordinator DI container to use this scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddScoped(s => new WabiSabiConfig
+				services.AddScoped<IOptionsMonitor<WabiSabiConfig>>(_ => new TesteableOptionsMonitor<WabiSabiConfig>(new ()
 				{
 					MaxInputCountByRound = inputCount,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
@@ -225,7 +221,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				});
+				}));
 
 				// Emulate that the all our outputs had been already used in the past.
 				// the server will prevent the registration and fail with an WabiSabiProtocolError.
@@ -250,7 +246,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
-		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
+		using var roundStateUpdater = new RoundStateUpdater(apiClient, period: TimeSpan.FromSeconds(1));
 
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
@@ -340,10 +336,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			})
 		.ConfigureServices(services =>
 		{
-			// Instruct the coordinator DI container to use this scoped
-			// services to build everything (WabiSabi controller, arena, etc)
-			services.AddScoped<IRPCClient>(s => rpc);
-
 			services.AddScoped<IOptionsMonitor<WabiSabiConfig>>(_ => new TesteableOptionsMonitor<WabiSabiConfig>(new ()
 			{
 				MaxInputCountByRound = 2 * inputCount,
@@ -370,7 +362,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Setup(factory => factory.NewHttpClientWithCircuitPerRequest())
 			.Returns(httpClientWrapper);
 
-		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
+		using var roundStateUpdater = new RoundStateUpdater(apiClient, period: TimeSpan.FromSeconds(1));
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
 		var roundState = await roundStateUpdater.CreateRoundAwaiter(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);

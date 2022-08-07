@@ -1,11 +1,9 @@
 using NBitcoin;
-using Nito.AsyncEx;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Crypto.CredentialRequesting;
@@ -13,7 +11,6 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using WalletWasabi.Logging;
 using WalletWasabi.Crypto.Randomness;
-using System;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -34,6 +31,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private async Task<InputRegistrationResponse> RegisterInputCoreAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
+		Prison.Assert(request.Input, Config.CurrentValue.AllowNotedInputRegistration);
 		var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
 		using (await AsyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
@@ -354,22 +352,6 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	public async Task<Coin> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		OutPoint input = request.Input;
-
-		if (Prison.TryGet(input, out var inmate) && (!Config.CurrentValue.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted))
-		{
-			DateTimeOffset bannedUntil;
-			if (inmate.Punishment == Punishment.LongBanned)
-			{
-				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfterLongBan;
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputLongBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
-			}
-
-			if (!Config.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted)
-			{
-				bannedUntil = inmate.Started + Config.ReleaseUtxoFromPrisonAfter;
-				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(bannedUntil));
-			}
-		}
 
 		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false);
 		if (txOutResponse is null)

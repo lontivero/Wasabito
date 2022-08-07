@@ -26,12 +26,12 @@ public class TorMonitor : PeriodicRunner
 {
 	public static readonly TimeSpan CheckIfRunningAfterTorMisbehavedFor = TimeSpan.FromMinutes(5);
 
-	public TorMonitor(TimeSpan period, Uri fallbackBackendUri, TorProcessManager torProcessManager, HttpClientFactory httpClientFactory) : base(period)
+	public TorMonitor(TorProcessManager torProcessManager, HttpClientFactory httpClientFactory, TimeSpan? period = null ) 
+		: base(period ?? TimeSpan.FromSeconds(5))
 	{
 		TorProcessManager = torProcessManager;
 		TorHttpPool = httpClientFactory.TorHttpPool!;
 		HttpClient = httpClientFactory.NewTorHttpClient(Mode.DefaultCircuit);
-		TestApiUri = new Uri(fallbackBackendUri, "/api/Software/versions");
 	}
 
 	private CancellationTokenSource LoopCts { get; } = new();

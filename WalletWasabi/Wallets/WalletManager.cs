@@ -23,10 +23,10 @@ public class WalletManager
 	/// <remarks>All access must be guarded by <see cref="Lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
 
-	public WalletManager(Network network, string workDir, WalletDirectories walletDirectories)
+	public WalletManager(Network network, WalletDirectories walletDirectories)
 	{
 		Network = Guard.NotNull(nameof(network), network);
-		WorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+		WorkDir = ".";
 		Directory.CreateDirectory(WorkDir);
 		WalletDirectories = Guard.NotNull(nameof(walletDirectories), walletDirectories);
 

@@ -153,7 +153,7 @@ public partial class MainViewModel : ViewModelBase
 		var source = new CompositeSearchItemsSource(new ActionsSource(), new SettingsSource(_settingsPage));
 		SearchBar = new SearchBarViewModel(source.Changes);
 
-		NetworkBadgeName = Services.Config.Network == Network.Main ? "" : Services.Config.Network.Name;
+		NetworkBadgeName = Services.Network == Network.Main ? "" : Services.Network.Name;
 	}
 
 	public string NetworkBadgeName { get; }
@@ -190,9 +190,9 @@ public partial class MainViewModel : ViewModelBase
 	{
 		StatusIcon.Initialize();
 
-		if (Services.Config.Network != Network.Main)
+		if (Services.Network != Network.Main)
 		{
-			Title += $" - {Services.Config.Network}";
+			Title += $" - {Services.Network}";
 		}
 	}
 
@@ -221,11 +221,11 @@ public partial class MainViewModel : ViewModelBase
 		BroadcastTransactionViewModel.RegisterAsyncLazy(
 			async () =>
 			{
-				var dialogResult = await DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(Services.Config.Network));
+				var dialogResult = await DialogScreen.NavigateDialogAsync(new LoadTransactionViewModel(Services.Network));
 
 				if (dialogResult.Result is { })
 				{
-					return new BroadcastTransactionViewModel(Services.Config.Network,
+					return new BroadcastTransactionViewModel(Services.Network,
 						dialogResult.Result);
 				}
 

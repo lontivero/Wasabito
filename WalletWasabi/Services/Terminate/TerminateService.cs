@@ -13,13 +13,11 @@ public class TerminateService
 	private const long TerminateStatusNotStarted = 0;
 	private const long TerminateStatusInProgress = 1;
 	private const long TerminateStatusFinished = 2;
-	private readonly Func<Task> _terminateApplicationAsync;
 	private readonly Action _terminateApplication;
 	private long _terminateStatus;
 
-	public TerminateService(Func<Task> terminateApplicationAsync, Action terminateApplication)
+	public TerminateService(Action terminateApplication)
 	{
-		_terminateApplicationAsync = terminateApplicationAsync;
 		_terminateApplication = terminateApplication;
 		AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 		Console.CancelKeyPress += Console_CancelKeyPress;
@@ -105,17 +103,7 @@ public class TerminateService
 
 		// Async termination has to be started on another thread otherwise there is a possibility of deadlock.
 		// We still need to block the caller so Wait applied.
-		Task.Run(async () =>
-		{
-			try
-			{
-				await _terminateApplicationAsync().ConfigureAwait(false);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex.ToTypeMessageString());
-			}
-		}).Wait();
+		_terminateApplication();
 
 		AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
 		Console.CancelKeyPress -= Console_CancelKeyPress;

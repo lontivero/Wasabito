@@ -8,9 +8,10 @@ namespace WalletWasabi.WebClients.BlockstreamInfo;
 
 public class BlockstreamInfoFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 {
-	public BlockstreamInfoFeeProvider(TimeSpan period, BlockstreamInfoClient blockstreamInfoClient) : base(period)
+	public BlockstreamInfoFeeProvider(BlockstreamInfoClient blockstreamInfoClient, TimeSpan? period = null) : base(period ?? TimeSpan.FromMinutes(3))
 	{
 		BlockstreamInfoClient = blockstreamInfoClient;
+		IsPaused = true;
 	}
 
 	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;

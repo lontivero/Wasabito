@@ -2,22 +2,23 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.Options;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Wallets;
 
 public class WalletDirectories
 {
-	public const string WalletsDirName = "Wallets";
 	private const string WalletFileExtension = "json";
 
 	public WalletDirectories(Network network, string workDir)
 	{
 		Network = network;
-		var correctedWorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+		workDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
+		var correctedWorkDir = Path.Combine(workDir, "Wallets");
 		WalletsDir = (network == Network.Main)
-			? Path.Combine(correctedWorkDir, WalletsDirName)
-			: Path.Combine(correctedWorkDir, WalletsDirName, network.ToString());
+			? Path.Combine(correctedWorkDir)
+			: Path.Combine(correctedWorkDir, network.ToString());
 
 		Directory.CreateDirectory(WalletsDir);
 	}

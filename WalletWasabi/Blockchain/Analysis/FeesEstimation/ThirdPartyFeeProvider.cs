@@ -10,8 +10,8 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 
 public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 {
-	public ThirdPartyFeeProvider(TimeSpan period, WasabiSynchronizer synchronizer, BlockstreamInfoFeeProvider blockstreamProvider)
-		: base(period)
+	public ThirdPartyFeeProvider(WasabiSynchronizer synchronizer, BlockstreamInfoFeeProvider blockstreamProvider, TimeSpan? period = null )
+		: base(period ?? TimeSpan.FromMinutes(1))
 	{
 		Synchronizer = synchronizer;
 		BlockstreamProvider = blockstreamProvider;

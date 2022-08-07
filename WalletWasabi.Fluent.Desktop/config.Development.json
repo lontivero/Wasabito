@@ -1,0 +1,41 @@
+﻿{
+  "Network": "RegTest",
+  "Wallet": {
+    "Directory": "./wallets",
+    "DustThreshold": 0.00005
+  },
+  "BitcoinIntegration": {
+    "Host" : "127.0.0.1:18444",
+    "StartLocalBitcoinCoreOnStartup" : false,
+    "StopLocalBitcoinCoreOnShutdown" : true,
+    "LocalBitcoinCoreDataDir" : "/home/lontivero/.bitcoin"
+  },
+  "JsonRpcServer" : {
+    "IsEnabled": true,
+    "JsonRpcUser": "user",
+    "JsonRpcPassword": "password",
+    "JsonRpcServerPrefixes": [
+      "http://127.0.0.1:37128/",
+      "http://localhost:37128/"
+    ]
+  },
+    "Coordinator" : {
+    "Host": "http://localhost:37127/",
+    "Fallback": "http://localhost:37127/"
+  },
+  "Logging": {
+    "IncludeScopes": false,
+    "Debug": {
+      "LogLevel": {
+        "Default": "Warning",
+        "Microsoft": "Warning"
+      }
+    },
+    "Console": {
+      "LogLevel": {
+        "Default": "Warning",
+        "Microsoft": "Warning"
+      }
+    }
+  }
+}

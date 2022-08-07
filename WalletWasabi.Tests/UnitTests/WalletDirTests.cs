@@ -15,7 +15,7 @@ public class WalletDirTests
 {
 	private async Task<string> CleanupWalletDirectoriesAsync(string baseDir)
 	{
-		var walletsPath = Path.Combine(baseDir, WalletDirectories.WalletsDirName);
+		var walletsPath = Path.Combine(baseDir, "Wallets");
 		await IoHelpers.TryDeleteDirectoryAsync(walletsPath);
 
 		return walletsPath;

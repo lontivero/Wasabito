@@ -9,7 +9,7 @@ namespace WalletWasabi.Services;
 
 public class UpdateChecker : PeriodicRunner
 {
-	public UpdateChecker(TimeSpan period, WasabiSynchronizer synchronizer) : base(period)
+	public UpdateChecker(WasabiSynchronizer synchronizer, TimeSpan? period = null) : base(period ?? TimeSpan.FromMinutes(7))
 	{
 		Synchronizer = synchronizer;
 		UpdateStatus = new UpdateStatus(true, true, 0, new Version());

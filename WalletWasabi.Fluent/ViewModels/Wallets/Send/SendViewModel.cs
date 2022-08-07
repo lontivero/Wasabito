@@ -55,7 +55,7 @@ public partial class SendViewModel : RoutableViewModel
 		_to = "";
 		_wallet = wallet;
 		_transactionInfo = new TransactionInfo(wallet.KeyManager.AnonScoreTarget);
-		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+		_coinJoinManager = Services.GetService<CoinJoinManager>();
 
 		_conversionReversed = false; // Services.UiConfig.SendAmountConversionReversed;
 
@@ -183,7 +183,7 @@ public partial class SendViewModel : RoutableViewModel
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
-			if (!Services.Config.UseTor)
+			if (!Services.TorOptions.UseTor)
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{
@@ -191,7 +191,7 @@ public partial class SendViewModel : RoutableViewModel
 					return null;
 				}
 
-				if (Services.Config.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
+				if (Services.Network == Network.Main && payjoinEndPointUri.Scheme != Uri.UriSchemeHttps)
 				{
 					Logger.LogWarning("Payjoin server is not exposed as an onion service nor https. Ignoring...");
 					return null;

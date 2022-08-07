@@ -31,7 +31,7 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 		Address = _model.GetP2wpkhAddress(_wallet.Network).ToString();
 		Labels = _model.Label;
 		IsHardwareWallet = _wallet.KeyManager.IsHardwareWallet;
-		IsAutoCopyEnabled = Services.UiConfig.Autocopy;
+		IsAutoCopyEnabled = Services.UiConfig.AutoCopy;
 
 		GenerateQrCode();
 

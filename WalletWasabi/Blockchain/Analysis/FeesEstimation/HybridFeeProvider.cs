@@ -14,7 +14,7 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 /// </summary>
 public class HybridFeeProvider : IHostedService
 {
-	public HybridFeeProvider(IThirdPartyFeeProvider thirdPartyFeeProvider, RpcFeeProvider? rpcFeeProvider)
+	public HybridFeeProvider(IThirdPartyFeeProvider thirdPartyFeeProvider, RpcFeeProvider? rpcFeeProvider = null)
 	{
 		ThirdPartyFeeProvider = thirdPartyFeeProvider;
 		RpcFeeProvider = rpcFeeProvider;

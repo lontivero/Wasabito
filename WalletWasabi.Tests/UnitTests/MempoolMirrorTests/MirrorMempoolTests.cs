@@ -15,13 +15,13 @@ public class MirrorMempoolTests
 	public async Task CanCopyMempoolFromRpcAsync()
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanCopyMempoolFromRpcAsync));
-		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(2)), "Mempool Mirror");
+		using var mempoolMirror = new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(2));
+		await mempoolMirror.StartAsync(CancellationToken.None);
+
 		try
 		{
 			var rpc = coreNode.RpcClient;
 			var network = rpc.Network;
-			var mempoolInstance = services.Get<MempoolMirror>();
 			var walletName = "RandomWalletName";
 			await rpc.CreateWalletAsync(walletName);
 
@@ -37,9 +37,8 @@ public class MirrorMempoolTests
 				await Task.Delay(50);
 			}
 
-			await services.StartAllAsync();
-			await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
-			var localMempoolHashes = mempoolInstance.GetMempoolHashes();
+			await mempoolMirror.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
+			var localMempoolHashes = mempoolMirror.GetMempoolHashes();
 
 			Assert.Equal(2, localMempoolHashes.Count);
 			Assert.Contains(txid, localMempoolHashes);
@@ -47,7 +46,7 @@ public class MirrorMempoolTests
 		}
 		finally
 		{
-			await services.StopAllAsync();
+			await mempoolMirror.StopAsync(CancellationToken.None);
 			await coreNode.TryStopAsync();
 		}
 	}
@@ -56,16 +55,15 @@ public class MirrorMempoolTests
 	public async Task CanHandleArrivingTxAsync()
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanHandleArrivingTxAsync));
-		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(7)), "Mempool Mirror");
+		using var mempoolMirror = new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(7));
+		await mempoolMirror.StartAsync(CancellationToken.None);
+
 		try
 		{
 			var rpc = coreNode.RpcClient;
 			var network = rpc.Network;
 			var walletName = "RandomWalletName";
 			await rpc.CreateWalletAsync(walletName);
-
-			await services.StartAllAsync();
 
 			await rpc.GenerateAsync(101);
 
@@ -76,16 +74,15 @@ public class MirrorMempoolTests
 				await Task.Delay(50);
 			}
 
-			var mempoolInstance = services.Get<MempoolMirror>();
-			await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-			var localMempoolHashes = mempoolInstance.GetMempoolHashes();
+			await mempoolMirror.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
+			var localMempoolHashes = mempoolMirror.GetMempoolHashes();
 
 			Assert.Single(localMempoolHashes);
 			Assert.Contains(txid, localMempoolHashes);
 		}
 		finally
 		{
-			await services.StopAllAsync();
+			await mempoolMirror.StopAsync(CancellationToken.None);
 			await coreNode.TryStopAsync();
 		}
 	}
@@ -94,14 +91,13 @@ public class MirrorMempoolTests
 	public async Task CanHandleTheSameTxSentManyTimesAsync()
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanHandleTheSameTxSentManyTimesAsync));
-		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(2)), "Mempool Mirror");
+		using var mempoolMirror = new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(2));
+		await mempoolMirror.StartAsync(CancellationToken.None);
+
 		try
 		{
 			var rpc = coreNode.RpcClient;
 			var network = rpc.Network;
-			await services.StartAllAsync();
-			var mempoolInstance = services.Get<MempoolMirror>();
 
 			var walletName = "RandomWalletName";
 			await rpc.CreateWalletAsync(walletName);
@@ -129,16 +125,16 @@ public class MirrorMempoolTests
 				await Task.Delay(50);
 			}
 
-			await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
+			await mempoolMirror.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
-			var localMempoolHashes = mempoolInstance.GetMempoolHashes();
+			var localMempoolHashes = mempoolMirror.GetMempoolHashes();
 
 			Assert.Single(localMempoolHashes);
 			Assert.Contains(tx.GetHash(), localMempoolHashes);
 		}
 		finally
 		{
-			await services.StopAllAsync();
+			await mempoolMirror.StopAsync(CancellationToken.None);
 			await coreNode.TryStopAsync();
 		}
 	}
@@ -147,14 +143,13 @@ public class MirrorMempoolTests
 	public async Task CanHandleManyTxsAsync()
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanHandleManyTxsAsync));
-		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(2)), "Mempool Mirror");
+		using var mempoolMirror = new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(2));
+		await mempoolMirror.StartAsync(CancellationToken.None);
+
 		try
 		{
 			var rpc = coreNode.RpcClient;
 			var network = rpc.Network;
-			await services.StartAllAsync();
-			var mempoolInstance = services.Get<MempoolMirror>();
 
 			var walletName = "RandomWalletName";
 			await rpc.CreateWalletAsync(walletName);
@@ -176,15 +171,15 @@ public class MirrorMempoolTests
 				await Task.Delay(50);
 			}
 
-			await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
+			await mempoolMirror.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
-			var localMempoolHashes = mempoolInstance.GetMempoolHashes();
+			var localMempoolHashes = mempoolMirror.GetMempoolHashes();
 
 			Assert.Equal(5, localMempoolHashes.Count);
 		}
 		finally
 		{
-			await services.StopAllAsync();
+			await mempoolMirror.StopAsync(CancellationToken.None);
 			await coreNode.TryStopAsync();
 		}
 	}
@@ -193,14 +188,13 @@ public class MirrorMempoolTests
 	public async Task CanHandleConfirmationAsync()
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync(nameof(CanHandleConfirmationAsync));
-		using HostedServices services = new();
-		services.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(2)), "Mempool Mirror");
+		using var mempoolMirror = new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(2));
+		await mempoolMirror.StartAsync(CancellationToken.None);
+
 		try
 		{
 			var rpc = coreNode.RpcClient;
 			var network = rpc.Network;
-			await services.StartAllAsync();
-			var mempoolInstance = services.Get<MempoolMirror>();
 
 			var walletName = "RandomWalletName";
 			await rpc.CreateWalletAsync(walletName);
@@ -210,7 +204,7 @@ public class MirrorMempoolTests
 			await rpc.GenerateAsync(101);
 
 			var rpcMempoolBeforeSend = await rpc.GetRawMempoolAsync();
-			var localMempoolBeforeSend = mempoolInstance.GetMempoolHashes();
+			var localMempoolBeforeSend = mempoolMirror.GetMempoolHashes();
 			Assert.Equal(rpcMempoolBeforeSend.Length, localMempoolBeforeSend.Count);
 
 			await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(network), spendAmount);
@@ -219,9 +213,9 @@ public class MirrorMempoolTests
 				await Task.Delay(50);
 			}
 
-			await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
+			await mempoolMirror.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
-			var localMempoolAfterSend = mempoolInstance.GetMempoolHashes();
+			var localMempoolAfterSend = mempoolMirror.GetMempoolHashes();
 			Assert.Equal(1, localMempoolAfterSend.Count);
 			Assert.Single(localMempoolAfterSend);
 
@@ -230,14 +224,14 @@ public class MirrorMempoolTests
 			{
 				await Task.Delay(50);
 			}
-			await mempoolInstance.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
+			await mempoolMirror.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
-			var localMempoolAfterBlockMined = mempoolInstance.GetMempoolHashes();
+			var localMempoolAfterBlockMined = mempoolMirror.GetMempoolHashes();
 			Assert.Empty(localMempoolAfterBlockMined);
 		}
 		finally
 		{
-			await services.StopAllAsync();
+			await mempoolMirror.StopAsync(CancellationToken.None);
 			await coreNode.TryStopAsync();
 		}
 	}

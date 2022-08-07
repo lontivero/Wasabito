@@ -318,7 +318,7 @@ public static class WabiSabiFactory
 
 	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
 	{
-		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
+		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(new TesteableOptionsMonitor<WabiSabiConfig>(cfg), network);
 		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Money>()))
 			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
 				with

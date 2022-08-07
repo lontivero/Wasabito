@@ -68,7 +68,7 @@ public partial class WalletViewModel : WalletViewModelBase
 			.Subscribe(_ => IsWalletBalanceZero = wallet.Coins.TotalAmount() == Money.Zero)
 			.DisposeWith(Disposables);
 
-		if (Services.HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager)
+		if (Services.GetService<CoinJoinManager>() is { } coinJoinManager)
 		{
 			static bool? MaybeCoinjoining(StatusChangedEventArgs args) =>
 				args switch

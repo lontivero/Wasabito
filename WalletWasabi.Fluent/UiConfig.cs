@@ -8,31 +8,26 @@ using WalletWasabi.Fluent.Converters;
 
 namespace WalletWasabi.Fluent;
 
-[JsonObject(MemberSerialization.OptIn)]
-public class UiConfig : ConfigBase
+public class UiConfig : NotifyPropertyChangedBase
 {
-	private bool _privacyMode;
-	private bool _isCustomChangeAddress;
-	private bool _autocopy;
-	private int _feeDisplayUnit;
-	private bool _darkModeEnabled;
-	private string? _lastSelectedWallet;
+	private bool _privacyMode = false;
+	private bool _isCustomChangeAddress = false;
+	private bool _autoCopy = true;
+	private bool _autoPaste = false;
+	private int _feeDisplayUnit = 0;
+	private bool _darkModeEnabled = true;
+	private string? _lastSelectedWallet = null;
 	private string _windowState = "Normal";
 	private bool _runOnSystemStartup;
 	private bool _oobe;
 	private bool _hideOnClose;
-	private bool _autoPaste;
 	private int _feeTarget;
 	private bool _sendAmountConversionReversed;
 
-	public UiConfig() : base()
-	{
-	}
-
-	public UiConfig(string filePath) : base(filePath)
+	public UiConfig()
 	{
 		this.WhenAnyValue(
-				x => x.Autocopy,
+				x => x.AutoCopy,
 				x => x.AutoPaste,
 				x => x.IsCustomChangeAddress,
 				x => x.DarkModeEnabled,
@@ -57,8 +52,6 @@ public class UiConfig : ConfigBase
 			.Subscribe(_ => ToFile());
 	}
 
-	[JsonProperty(PropertyName = "Oobe", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[DefaultValue(true)]
 	public bool Oobe
 	{
 		get => _oobe;
@@ -73,91 +66,89 @@ public class UiConfig : ConfigBase
 		internal set => RaiseAndSetIfChanged(ref _windowState, value, nameof(WindowState));
 	}
 
-	[DefaultValue(2)]
-	[JsonProperty(PropertyName = "FeeTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int FeeTarget
 	{
 		get => _feeTarget;
 		internal set => RaiseAndSetIfChanged(ref _feeTarget, value, nameof(FeeTarget));
 	}
 
-	[DefaultValue(0)]
-	[JsonProperty(PropertyName = "FeeDisplayUnit", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int FeeDisplayUnit
 	{
 		get => _feeDisplayUnit;
 		set => RaiseAndSetIfChanged(ref _feeDisplayUnit, value, nameof(FeeDisplayUnit));
 	}
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "Autocopy", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool Autocopy
+	public bool AutoCopy
 	{
-		get => _autocopy;
-		set => RaiseAndSetIfChanged(ref _autocopy, value, nameof(Autocopy));
+		get => _autoCopy;
+		set => RaiseAndSetIfChanged(ref _autoCopy, value, nameof(AutoCopy));
 	}
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = nameof(AutoPaste), DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AutoPaste
 	{
 		get => _autoPaste;
 		set => RaiseAndSetIfChanged(ref _autoPaste, value, nameof(AutoPaste));
 	}
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "IsCustomChangeAddress", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool IsCustomChangeAddress
 	{
 		get => _isCustomChangeAddress;
 		set => RaiseAndSetIfChanged(ref _isCustomChangeAddress, value, nameof(IsCustomChangeAddress));
 	}
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "PrivacyMode", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool PrivacyMode
 	{
 		get => _privacyMode;
 		set => RaiseAndSetIfChanged(ref _privacyMode, value, nameof(PrivacyMode));
 	}
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "DarkModeEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool DarkModeEnabled
 	{
 		get => _darkModeEnabled;
 		set => RaiseAndSetIfChanged(ref _darkModeEnabled, value, nameof(DarkModeEnabled));
 	}
 
-	[DefaultValue(null)]
-	[JsonProperty(PropertyName = "LastSelectedWallet", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string? LastSelectedWallet
 	{
 		get => _lastSelectedWallet;
 		set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value, nameof(LastSelectedWallet));
 	}
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "RunOnSystemStartup", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool RunOnSystemStartup
 	{
 		get => _runOnSystemStartup;
 		set => RaiseAndSetIfChanged(ref _runOnSystemStartup, value, nameof(RunOnSystemStartup));
 	}
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "HideOnClose", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool HideOnClose
 	{
 		get => _hideOnClose;
 		set => RaiseAndSetIfChanged(ref _hideOnClose, value, nameof(HideOnClose));
 	}
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "SendAmountConversionReversed", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool SendAmountConversionReversed
 	{
 		get => _sendAmountConversionReversed;
 		internal set => RaiseAndSetIfChanged(ref _sendAmountConversionReversed, value, nameof(SendAmountConversionReversed));
+	}
+
+	private void ToFile()
+	{
+		var writableUiConfig = Services.GetRequiredService<IWritableOptions<UiConfig>>();
+		writableUiConfig.Update(uiConfig =>
+		{
+			uiConfig._autoCopy = _autoCopy;
+			uiConfig._oobe = _oobe;
+			uiConfig._autoPaste = _autoPaste;
+			uiConfig._feeTarget = _feeTarget;
+			uiConfig._privacyMode = _privacyMode;
+			uiConfig._darkModeEnabled = _darkModeEnabled;
+			uiConfig._feeDisplayUnit = _feeDisplayUnit;
+			uiConfig._hideOnClose = _hideOnClose;
+			uiConfig._lastSelectedWallet = _lastSelectedWallet;
+			uiConfig._isCustomChangeAddress = _isCustomChangeAddress;
+			uiConfig._runOnSystemStartup = _runOnSystemStartup;
+			uiConfig._sendAmountConversionReversed = _sendAmountConversionReversed;
+		});
 	}
 }

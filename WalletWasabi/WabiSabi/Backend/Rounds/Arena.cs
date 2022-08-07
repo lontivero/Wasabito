@@ -35,6 +35,7 @@ public partial class Arena : PeriodicRunner
 		ICoinJoinIdStore coinJoinIdStore,
 		RoundParameterFactory roundParameterFactory,
 		ILogger<Arena> logger,
+		CoinJoinScriptStore? coinJoinScriptStore = null,
 		TimeSpan? period = null
 		) : base(period ?? TimeSpan.FromSeconds(10))
 	{
@@ -43,11 +44,10 @@ public partial class Arena : PeriodicRunner
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
-		Random = new SecureRandom();
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
-		MaxSuggestedAmountProvider = new(Config);
+		MaxSuggestedAmountProvider = new(Config.CurrentValue);
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
@@ -106,7 +106,7 @@ public partial class Arena : PeriodicRunner
 			.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
 			.ToArray();
 
 		// Let's make sure WW2.0.1 clients prefer rounds that WW2.0.0 clients don't.
@@ -213,7 +213,7 @@ public partial class Arena : PeriodicRunner
 					}
 					else
 					{
-						round.OutputRegistrationTimeFrame = TimeFrame.Create(Config.FailFastOutputRegistrationTimeout);
+						round.OutputRegistrationTimeFrame = TimeFrame.Create(Config.CurrentValue.FailFastOutputRegistrationTimeout);
 						round.SetPhase(Phase.OutputRegistration);
 						_logger.LogInformation($"Phase changed: {round.Phase} -> {Phase.OutputRegistration}");
 					}
@@ -251,7 +251,7 @@ public partial class Arena : PeriodicRunner
 
 					if (!allReady && phaseExpired)
 					{
-						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.FailFastTransactionSigningTimeout);
+						round.TransactionSigningTimeFrame = TimeFrame.Create(Config.CurrentValue.FailFastTransactionSigningTimeout);
 					}
 
 					round.SetPhase(Phase.TransactionSigning);
@@ -325,13 +325,13 @@ public partial class Arena : PeriodicRunner
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{
-					round.LogWarning($"Signing phase failed with timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
+					_logger.LogWarning($"Signing phase failed with timed out after {round.TransactionSigningTimeFrame.Duration.TotalSeconds} seconds.");
 					await FailTransactionSigningPhaseAsync(round, cancellationToken).ConfigureAwait(false);
 				}
 			}
 			catch (RPCException ex)
 			{
-				round.LogWarning($"Transaction broadcasting failed: '{ex}'.");
+				_logger.LogWarning($"Transaction broadcasting failed: '{ex}'.");
 				round.EndRound(EndRoundState.TransactionBroadcastFailed);
 			}
 			catch (Exception ex)
@@ -409,24 +409,24 @@ public partial class Arena : PeriodicRunner
 
 		// Have rounds to split the volume around minimum input counts if load balance is required.
 		// Only do things if the load balancer compatibility is configured.
-		if (Config.WW200CompatibleLoadBalancing)
+		if (Config.CurrentValue.WW200CompatibleLoadBalancing)
 		{
 			// Destroy the round when it reaches this input count and create 2 new ones instead.
-			var roundDestroyerInputCount = Config.MinInputCountByRound * 2 + Config.MinInputCountByRound / 2;
+			var roundDestroyerInputCount = Config.CurrentValue.MinInputCountByRound * 2 + Config.CurrentValue.MinInputCountByRound / 2;
 
 			feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.CurrentValue.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 
 			foreach (var round in Rounds.Where(x =>
 				x.Phase == Phase.InputRegistration
 				&& x is not BlameRound
-				&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+				&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
 				&& x.InputCount >= roundDestroyerInputCount).ToArray())
 			{
 
 				var allInputs = round.Alices.Select(y => y.Coin.Amount).OrderBy(x => x).ToArray();
 
 				// 0.75 to bias towards larger numbers as larger input owners often have many smaller inputs too.
-				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * Config.WW200CompatibleLoadBalancingInputSplit)).First();
+				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * Config.CurrentValue.WW200CompatibleLoadBalancingInputSplit)).First();
 				var largeSuggestion = MaxSuggestedAmountProvider.AbsoluteMaximumInput;
 
 				var roundWithoutThis = Rounds.Except(new[] { round });
@@ -435,7 +435,7 @@ public partial class Arena : PeriodicRunner
 					.FirstOrDefault(x =>
 									x.Phase == Phase.InputRegistration
 									&& x is not BlameRound
-									&& !x.IsInputRegistrationEnded(Config.MaxInputCountByRound)
+									&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
 									&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
 									&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(60));
 				var largeRound = foundLargeRound ?? TryMineRound(parameters, roundWithoutThis.ToArray());
@@ -467,8 +467,8 @@ public partial class Arena : PeriodicRunner
 
 		// Add more rounds if not enough.
 		var registrableRoundCount = Rounds.Count(x => x is not BlameRound && x.Phase == Phase.InputRegistration && x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromMinutes(1));
-		int roundsToCreate = Config.RoundParallelization - registrableRoundCount;
-        feeRate ??= (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
+		int roundsToCreate = Config.CurrentValue.RoundParallelization - registrableRoundCount;
+        feeRate ??= (await Rpc.EstimateSmartFeeAsync((int)Config.CurrentValue.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 		for (int i = 0; i < roundsToCreate; i++)
 		{
 			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
@@ -496,7 +496,7 @@ public partial class Arena : PeriodicRunner
 			r = new Round(parameters, SecureRandom.Instance);
 			roundsCopy.Add(r);
 			orderedRounds = roundsCopy
-				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
 				.OrderBy(x => x.Parameters.MaxSuggestedAmount)
 				.ThenBy(x => x.InputCount);
 			times++;

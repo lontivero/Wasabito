@@ -14,7 +14,7 @@ namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
 public class RoundStateUpdater : PeriodicRunner
 {
-	public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
+	public RoundStateUpdater(IWabiSabiApiRequestHandler arenaRequestHandler, TimeSpan? period = null) : base(period ?? TimeSpan.FromSeconds(5))
 	{
 		ArenaRequestHandler = arenaRequestHandler;
 	}

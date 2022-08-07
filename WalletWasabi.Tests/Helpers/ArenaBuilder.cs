@@ -2,6 +2,7 @@ using Moq;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.WabiSabi;
@@ -40,7 +41,7 @@ public class ArenaBuilder
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
 
 		var testeableCfg = new TesteableOptionsMonitor<WabiSabiConfig>(config);
-		Arena arena = new(network, testeableCfg, rpc, prison, coinJoinIdStore, roundParameterFactory, period: period);
+		Arena arena = new(network, testeableCfg, rpc, prison, coinJoinIdStore, roundParameterFactory, NullLogger<Arena>.Instance,  period: period);
 
 		foreach (var round in rounds)
 		{

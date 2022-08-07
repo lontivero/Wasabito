@@ -12,24 +12,18 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 
 	protected SettingsTabViewModelBase()
 	{
-		ConfigOnOpen = new Config(Services.Config.FilePath);
-		ConfigOnOpen.LoadFile();
 	}
 
 	public static event EventHandler<RestartNeededEventArgs>? RestartNeeded;
-
-	public static Config? ConfigOnOpen { get; set; }
 
 	private static object ConfigLock { get; } = new();
 
 	protected void Save()
 	{
-		if (Validations.Any || ConfigOnOpen is null)
+		if (Validations.Any)
 		{
 			return;
 		}
-
-		var config = new Config(ConfigOnOpen.FilePath);
 
 		RxApp.MainThreadScheduler.Schedule(
 			() =>
@@ -38,10 +32,7 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 				{
 					lock (ConfigLock)
 					{
-						config.LoadFile();
-						EditConfigOnSave(config);
-						config.ToFile();
-
+						EditConfigOnSave();
 						OnConfigSaved();
 					}
 				}
@@ -52,7 +43,7 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 			});
 	}
 
-	protected abstract void EditConfigOnSave(Config config);
+	protected abstract void EditConfigOnSave();
 
 	private static void OnConfigSaved()
 	{
@@ -68,16 +59,6 @@ public abstract class SettingsTabViewModelBase : RoutableViewModel
 
 	public static bool CheckIfRestartIsNeeded()
 	{
-		if (ConfigOnOpen is null)
-		{
-			return false;
-		}
-
-		var currentConfig = new Config(ConfigOnOpen.FilePath);
-		currentConfig.LoadFile();
-
-		var isRestartNeeded = !ConfigOnOpen.AreDeepEqual(currentConfig);
-
-		return isRestartNeeded;
+		return false; // isRestartNeeded;
 	}
 }

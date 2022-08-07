@@ -4,18 +4,19 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Rpc;
 
 public class JsonRpcServer : BackgroundService
 {
-	public JsonRpcServer(IJsonRpcService service, JsonRpcServerConfiguration config)
+	public JsonRpcServer(IJsonRpcService service, IOptions<JsonRpcServerConfiguration> config)
 	{
-		Config = config;
+		Config = config.Value;
 		Listener = new HttpListener();
 		Listener.AuthenticationSchemes = AuthenticationSchemes.Basic | AuthenticationSchemes.Anonymous;
-		foreach (var prefix in Config.Prefixes)
+		foreach (var prefix in Config.JsonRpcServerPrefixes)
 		{
 			Listener.Prefixes.Add(prefix);
 		}

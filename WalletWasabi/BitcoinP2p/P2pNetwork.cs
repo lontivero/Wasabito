@@ -8,21 +8,24 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
+using WalletWasabi.Tor;
 
 namespace WalletWasabi.BitcoinP2p;
 
 public class P2pNetwork : BackgroundService
 {
-	public P2pNetwork(Network network, EndPoint fullnodeP2pEndPoint, EndPoint? torSocks5EndPoint, string workDir, BitcoinStore bitcoinStore)
+	public P2pNetwork(Network network, IOptions<BitcoinIntegrationOptions> bitcoinOptions, IOptions<TorOptions> torOptions, BitcoinStore bitcoinStore)
 	{
 		Network = network;
-		FullnodeP2PEndPoint = fullnodeP2pEndPoint;
-		TorSocks5EndPoint = torSocks5EndPoint;
-		WorkDir = workDir;
+		FullnodeP2PEndPoint = bitcoinOptions.Value.Host;
+		TorSocks5EndPoint = torOptions.Value.SocksEndpoint;
+		WorkDir = ".";
 		BitcoinStore = bitcoinStore;
 
 		var userAgent = Constants.UserAgents.RandomElement();

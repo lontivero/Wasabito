@@ -7,6 +7,8 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.CrashReport;
 
+// TODO: remove concept.
+
 public static class CrashReporter
 {
 	public static void Invoke(Exception exceptionToReport)

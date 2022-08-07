@@ -1,0 +1,32 @@
+﻿{
+  "Network": "TestNet",
+  "DustThreshold": 0.00005,
+  "JsonRpcServer" : {
+    "Enabled": false,
+    "JsonRpcUser": "user",
+    "JsonRpcPassword": "password",
+    "JsonRpcServerPrefixes": [
+      "http://127.0.0.1:37128/",
+      "http://localhost:37128/"
+    ]
+  },
+  "Coordinator" : {
+    "Host": "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/",
+    "Fallback": "https://wasabiwallet.co/"
+  },
+  "Logging": {
+    "IncludeScopes": false,
+    "Debug": {
+      "LogLevel": {
+        "Default": "Warning",
+        "Microsoft": "Warning"
+      }
+    },
+    "Console": {
+      "LogLevel": {
+        "Default": "Warning",
+        "Microsoft": "Warning"
+      }
+    }
+  }
+}

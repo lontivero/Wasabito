@@ -27,7 +27,7 @@ public static class Logger
 
 	private static int LoggingFailedCount = 0;
 
-	private static LogLevel MinimumLevel { get; set; } = LogLevel.Critical;
+	private static LogLevel MinimumLevel { get; set; } = LogLevel.Trace;
 
 	private static HashSet<LogMode> Modes { get; } = new HashSet<LogMode>();
 
@@ -127,11 +127,6 @@ public static class Logger
 	{
 		try
 		{
-			if (Modes.Count == 0 || !IsOn())
-			{
-				return;
-			}
-
 			if (level < MinimumLevel)
 			{
 				return;
@@ -212,7 +207,7 @@ public static class Logger
 					Debug.Write(finalMessage);
 				}
 
-				if (!Modes.Contains(LogMode.File))
+				if (Modes.Contains(LogMode.File))
 				{
 					return;
 				}

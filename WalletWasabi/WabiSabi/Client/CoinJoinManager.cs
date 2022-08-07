@@ -26,18 +26,16 @@ public class CoinJoinManager : BackgroundService
 	private record StartCoinJoinCommand(Wallet Wallet, bool StopWhenAllMixed, bool OverridePlebStop) : CoinJoinCommand(Wallet);
 	private record StopCoinJoinCommand(Wallet Wallet) : CoinJoinCommand(Wallet);
 
-	public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory, ServiceConfiguration serviceConfiguration)
+	public CoinJoinManager(WalletManager walletManager, RoundStateUpdater roundStatusUpdater, IWasabiHttpClientFactory backendHttpClientFactory)
 	{
 		WalletManager = walletManager;
 		HttpClientFactory = backendHttpClientFactory;
 		RoundStatusUpdater = roundStatusUpdater;
-		ServiceConfiguration = serviceConfiguration;
 	}
 
 	public WalletManager WalletManager { get; }
 	public IWasabiHttpClientFactory HttpClientFactory { get; }
 	public RoundStateUpdater RoundStatusUpdater { get; }
-	public ServiceConfiguration ServiceConfiguration { get; }
 	private CoinRefrigerator CoinRefrigerator { get; } = new();
 	public bool IsUserInSendWorkflow { get; set; }
 
@@ -55,7 +53,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			// Turn off overriding if we went above the threshold meanwhile.
 			overridePlebStop = false;
-			wallet.LogDebug($"Do not override PlebStop anymore we are above the threshold.");
+			Logger.LogDebug($"Do not override PlebStop anymore we are above the threshold.");
 		}
 
 		await CommandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, stopWhenAllMixed, overridePlebStop), cancellationToken).ConfigureAwait(false);
@@ -140,11 +138,11 @@ public class CoinJoinManager : BackgroundService
 				{
 					tracker.StopWhenAllMixed = startCommand.StopWhenAllMixed;
 
-					walletToStart.LogDebug($"Cannot start coinjoin, because it is already running - but updated the value of {nameof(startCommand.StopWhenAllMixed)} to {startCommand.StopWhenAllMixed}.");
+					Logger.LogDebug($"Cannot start coinjoin, because it is already running - but updated the value of {nameof(startCommand.StopWhenAllMixed)} to {startCommand.StopWhenAllMixed}.");
 				}
 				else
 				{
-					walletToStart.LogDebug("Cannot start coinjoin, because it is already running.");
+					Logger.LogDebug("Cannot start coinjoin, because it is already running.");
 				}
 
 				return;
@@ -162,7 +160,7 @@ public class CoinJoinManager : BackgroundService
 
 			if (walletToStart.IsUnderPlebStop && !startCommand.OverridePlebStop)
 			{
-				walletToStart.LogDebug("PlebStop preventing coinjoin.");
+				Logger.LogDebug("PlebStop preventing coinjoin.");
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NotEnoughUnprivateBalance);
@@ -179,7 +177,7 @@ public class CoinJoinManager : BackgroundService
 
 			if (IsWalletPrivate(walletToStart))
 			{
-				walletToStart.LogDebug("All mixed!");
+				Logger.LogDebug("All mixed!");
 				if (!startCommand.StopWhenAllMixed)
 				{
 					ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
@@ -192,7 +190,7 @@ public class CoinJoinManager : BackgroundService
 			var coinCandidates = SelectCandidateCoins(walletToStart, synchronizerResponse.BestHeight).ToArray();
 			if (coinCandidates.Length == 0)
 			{
-				walletToStart.LogDebug("No candidate coins available to mix.");
+				Logger.LogDebug("No candidate coins available to mix.");
 				ScheduleRestartAutomatically(walletToStart, trackedAutoStarts, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop, stoppingToken);
 
 				NotifyCoinJoinStartError(walletToStart, CoinjoinError.NoCoinsToMix);
@@ -204,7 +202,7 @@ public class CoinJoinManager : BackgroundService
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletName, coinJoinTracker))
 			{
 				// This should never happen.
-				walletToStart.LogError($"{nameof(CoinJoinTracker)} was already added.");
+				Logger.LogError($"{nameof(CoinJoinTracker)} was already added.");
 				coinJoinTracker.Stop();
 				coinJoinTracker.Dispose();
 				return;
@@ -215,7 +213,7 @@ public class CoinJoinManager : BackgroundService
 			var registrationTimeout = TimeSpan.MaxValue;
 			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
 
-			walletToStart.LogDebug($"Coinjoin client started, {nameof(startCommand.StopWhenAllMixed)}:'{startCommand.StopWhenAllMixed}' {nameof(startCommand.OverridePlebStop)}:'{startCommand.OverridePlebStop}'.");
+			Logger.LogDebug($"Coinjoin client started, {nameof(startCommand.StopWhenAllMixed)}:'{startCommand.StopWhenAllMixed}' {nameof(startCommand.OverridePlebStop)}:'{startCommand.OverridePlebStop}'.");
 
 			// In case there was another start scheduled just remove it.
 			TryRemoveTrackedAutoStart(walletToStart);
@@ -232,7 +230,7 @@ public class CoinJoinManager : BackgroundService
 				coinJoinTrackerToStop.Stop();
 				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
 				{
-					walletToStop.LogWarning($"Coinjoin is in critical phase, it cannot be stopped - it won't restart later.");
+					Logger.LogWarning($"Coinjoin is in critical phase, it cannot be stopped - it won't restart later.");
 				}
 			}
 			else if (autoStartRemoved)
@@ -281,7 +279,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		if (trackedAutoStarts.ContainsKey(walletToStart))
 		{
-			walletToStart.LogDebug($"AutoStart was already scheduled.");
+			Logger.LogDebug($"AutoStart was already scheduled.");
 			return;
 		}
 
@@ -310,13 +308,13 @@ public class CoinJoinManager : BackgroundService
 			}
 			else
 			{
-				walletToStart.LogInfo($"AutoStart was already handled.");
+				Logger.LogInfo($"AutoStart was already handled.");
 			}
 		}, linkedCts.Token);
 
 		if (!trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, linkedCts)))
 		{
-			walletToStart.LogInfo($"AutoCoinJoin task was already added.");
+			Logger.LogInfo($"AutoCoinJoin task was already added.");
 		}
 	}
 
@@ -334,7 +332,7 @@ public class CoinJoinManager : BackgroundService
 
 				if (!finishedCoinJoin.IsStopped && !stoppingToken.IsCancellationRequested)
 				{
-					finishedCoinJoin.Wallet.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
+					Logger.LogInfo($"{nameof(CoinJoinClient)} restart automatically.");
 
 					ScheduleRestartAutomatically(finishedCoinJoin.Wallet, trackedAutoStarts, finishedCoinJoin.StopWhenAllMixed, finishedCoinJoin.OverridePlebStop, stoppingToken);
 				}
@@ -374,11 +372,11 @@ public class CoinJoinManager : BackgroundService
 			{
 				CoinRefrigerator.Freeze(result.RegisteredCoins);
 				MarkDestinationsUsed(result.RegisteredOutputs);
-				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
+				Logger.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
 			}
 			else
 			{
-				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was not broadcast.");
+				Logger.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was not broadcast.");
 			}
 		}
 		catch (NoCoinsToMixException x)
@@ -394,11 +392,11 @@ public class CoinJoinManager : BackgroundService
 		{
 			if (finishedCoinJoin.IsStopped)
 			{
-				wallet.LogInfo($"{nameof(CoinJoinClient)} was stopped.");
+				Logger.LogInfo($"{nameof(CoinJoinClient)} was stopped.");
 			}
 			else
 			{
-				wallet.LogInfo($"{nameof(CoinJoinClient)} was cancelled.");
+				Logger.LogInfo($"{nameof(CoinJoinClient)} was cancelled.");
 			}
 		}
 		catch (UnexpectedRoundPhaseException e)
@@ -407,16 +405,16 @@ public class CoinJoinManager : BackgroundService
 			// temporarily we are shortening the circuit by aborting the rounds if 
 			// there are Alices that didn't confirm.
 			// The fix is already done but the clients have to upgrade.
-			wallet.LogInfo($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
+			Logger.LogInfo($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
 		catch (Exception e)
 		{
-			wallet.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
+			Logger.LogError($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
 		}
 
 		if (!trackedCoinJoins.TryRemove(wallet.WalletName, out _))
 		{
-			wallet.LogWarning($"Was not removed from tracked wallet list. Will retry in a few seconds.");
+			Logger.LogWarning($"Was not removed from tracked wallet list. Will retry in a few seconds.");
 		}
 		else
 		{

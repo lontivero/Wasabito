@@ -2,7 +2,10 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -134,17 +137,20 @@ public class P2pBasedTests
 	public async Task BlockNotifierTestsAsync()
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync(nameof(BlockNotifierTestsAsync));
-		using HostedServices services = new();
-		services.Register<BlockNotifier>(() => new BlockNotifier(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(7)), "Block Notifier");
+		var blockNotifier = new BlockNotifier(coreNode.RpcClient, coreNode.P2pNode, period: TimeSpan.FromSeconds(7));
+		await blockNotifier.StartAsync(CancellationToken.None);
+		//var mockServiceProvider = new Mock<IServiceProvider>();
+		//mockServiceProvider.Setup(x => x.GetService(It.IsAny<Type>())).Returns(blockNotifier);
+		//var serviceProvider = mockServiceProvider.Object;
 
-		await services.StartAllAsync();
 		try
 		{
 			var rpc = coreNode.RpcClient;
 			var walletName = "wallet";
 			await rpc.CreateWalletAsync(walletName);
 
-			BlockNotifier notifier = services.Get<BlockNotifier>();
+			BlockNotifier notifier = blockNotifier;
+			//BlockNotifier notifier = serviceProvider.GetRequiredService<BlockNotifier>();
 
 			// Make sure we get notification for one block.
 			EventAwaiter<Block> blockEventAwaiter = new(h => notifier.OnBlock += h, h => notifier.OnBlock -= h);
@@ -201,7 +207,7 @@ public class P2pBasedTests
 		}
 		finally
 		{
-			await services.StopAllAsync();
+			await blockNotifier.StopAsync(CancellationToken.None);
 			await coreNode.TryStopAsync();
 		}
 	}

@@ -3,6 +3,7 @@ using System.Net;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -35,12 +36,12 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
-		_network = Services.Config.Network;
-		_startLocalBitcoinCoreOnStartup = Services.Config.StartLocalBitcoinCoreOnStartup;
-		_localBitcoinCoreDataDir = Services.Config.LocalBitcoinCoreDataDir;
-		_stopLocalBitcoinCoreOnShutdown = Services.Config.StopLocalBitcoinCoreOnShutdown;
-		_bitcoinP2PEndPoint = Services.Config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-		_dustThreshold = Services.Config.DustThreshold.ToString();
+		_network = Services.Network;
+		_startLocalBitcoinCoreOnStartup = Services.BitcoinIntegrationOptions.StartLocalBitcoinCoreOnStartup;
+		_localBitcoinCoreDataDir = Services.BitcoinIntegrationOptions.LocalBitcoinCoreDataDir;
+		_stopLocalBitcoinCoreOnShutdown = Services.BitcoinIntegrationOptions.StopLocalBitcoinCoreOnShutdown;
+		_bitcoinP2PEndPoint = Services.BitcoinIntegrationOptions.Host?.ToString() ?? "";
+		_dustThreshold = Services.WalletOptions.DustThreshold.ToString();
 
 		this.WhenAnyValue(
 				x => x.Network,
@@ -94,26 +95,29 @@ public partial class BitcoinTabSettingsViewModel : SettingsTabViewModelBase
 		}
 	}
 
-	protected override void EditConfigOnSave(Config config)
+	protected override void EditConfigOnSave()
 	{
-		if (Network == config.Network)
+		var writableBitcoinIntegrationOptions =
+			Services.GetRequiredService<IWritableOptions<BitcoinIntegrationOptions>>();
+
+		writableBitcoinIntegrationOptions.Update(bitcoinIntegrationConfig =>
 		{
 			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? p2PEp))
 			{
-				config.SetBitcoinP2pEndpoint(p2PEp);
+				bitcoinIntegrationConfig.Host = p2PEp;
 			}
+			bitcoinIntegrationConfig.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
+			bitcoinIntegrationConfig.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
+			bitcoinIntegrationConfig.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
+		});
 
-			config.StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup;
-			config.StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown;
-			config.LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir);
-			config.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
-				? Money.Coins(threshold)
-				: Config.DefaultDustThreshold;
-		}
-		else
+		var writableWalletOptions =
+			Services.GetRequiredService<IWritableOptions<WalletOptions>>();
+		writableWalletOptions.Update(walletOptions =>
 		{
-			config.Network = Network;
-			BitcoinP2PEndPoint = config.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-		}
+			walletOptions.DustThreshold = decimal.TryParse(DustThreshold, out var threshold)
+				? Money.Coins(threshold)
+				: Money.Zero;
+		});
 	}
 }

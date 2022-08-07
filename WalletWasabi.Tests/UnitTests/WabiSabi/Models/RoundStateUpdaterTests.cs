@@ -35,7 +35,7 @@ public class RoundStateUpdaterTests
 			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState2 with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
 			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
 
-		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromDays(1), mockApiClient.Object);
+		using RoundStateUpdater roundStatusUpdater = new(mockApiClient.Object, period:TimeSpan.FromDays(1));
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
@@ -113,7 +113,7 @@ public class RoundStateUpdaterTests
 			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.OutputRegistration } }, Array.Empty<CoinJoinFeeRateMedian>()))
 			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
 
-		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), mockApiClient.Object);
+		using RoundStateUpdater roundStatusUpdater = new(mockApiClient.Object, period:TimeSpan.FromMilliseconds(100));
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
@@ -161,7 +161,7 @@ public class RoundStateUpdaterTests
 			.ReturnsAsync(() => new RoundStateResponse(new[] { roundState with { Phase = Phase.Ended } }, Array.Empty<CoinJoinFeeRateMedian>()))
 			.ReturnsAsync(() => new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
 
-		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), mockApiClient.Object);
+		using RoundStateUpdater roundStatusUpdater = new(mockApiClient.Object, period: TimeSpan.FromMilliseconds(100));
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
@@ -200,7 +200,7 @@ public class RoundStateUpdaterTests
 					new[] { roundState with { Phase = Phase.InputRegistration } },
 					Array.Empty<CoinJoinFeeRateMedian>()));
 
-		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(100), mockApiClient.Object);
+		using RoundStateUpdater roundStatusUpdater = new(mockApiClient.Object, period: TimeSpan.FromSeconds(100));
 		try
 		{
 			await roundStatusUpdater.StartAsync(CancellationToken.None);

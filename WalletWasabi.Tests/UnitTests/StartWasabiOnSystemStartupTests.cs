@@ -16,7 +16,7 @@ public class StartWasabiOnSystemStartupTests
 	[Fact]
 	public async Task ModifyStartupOnDifferentSystemsTestAsync()
 	{
-		UiConfig originalConfig = GetUiConfig();
+		UiConfig originalConfig = new();
 		try
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -55,14 +55,5 @@ public class StartWasabiOnSystemStartupTests
 			// Restore original setting for devs.
 			await StartupHelper.ModifyStartupSettingAsync(originalConfig.RunOnSystemStartup);
 		}
-	}
-
-	private UiConfig GetUiConfig()
-	{
-		string dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
-		uiConfig.LoadOrCreateDefaultFile();
-
-		return uiConfig;
 	}
 }

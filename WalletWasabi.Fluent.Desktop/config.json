@@ -1,0 +1,68 @@
+﻿{
+  "Network": "Main",
+  "Wallet": {
+    "Directory": "./wallets",
+    "DustThreshold": 0.00005
+  },
+  "BitcoinIntegration": {
+    "Host" : "127.0.0.1:18444",
+    "StartLocalBitcoinCoreOnStartup" : false,
+    "StopLocalBitcoinCoreOnShutdown" : true,
+    "LocalBitcoinCoreDataDir" : "/home/lontivero/.bitcoin"
+  },
+  "Tor": {
+    // "DataDirectory": "",
+    // "TorBinaryFilePath": "tor.exe",
+    // "CookieAuthFilePath": "control_auth_cookie",
+    // "LogFilePath": "TorLogs.txt",
+    "TerminateOnExit":  true,
+    "SocksEndpoint": "127.0.0.1:37150",
+    "ControlEndpoint": "127.0.0.1:37151"
+  },
+  "JsonRpcServer" : {
+    "IsEnabled": false,
+    "JsonRpcUser": "user",
+    "JsonRpcPassword": "password",
+    "JsonRpcServerPrefixes": [
+      "http://127.0.0.1:37128/",
+      "http://localhost:37128/"
+    ]
+  },
+  "Coordinator" : {
+    "Host": "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/",
+    "Fallback": "https://wasabiwallet.io/"
+  },
+  "Ui" : {
+    "Oobe" : true,
+    "WindowX": 0,
+    "WindowY": 0,
+    "WindowWidth": 0,
+    "WindowHeight": 0,
+    "FeeTarget": 2,
+    "FeeDisplayUnit":  0,
+    "AutoCopy": true,
+    "AutoPaste": false,
+    "IsCustomChangeAddress": false,
+    "PrivacyMode": false,
+    "DarkModeEnabled":  true,
+    "LastSelectedWallet":  null,
+    "RunOnSystemStartup":  false,
+    "HideOnClose":  true,
+    "SendAmountConversionReversed":  false
+  },
+  "Logging": {
+    "IncludeScopes": false,
+    "Debug": {
+      "LogLevel": {
+        "Default": "Warning",
+        "Microsoft": "Warning"
+      }
+    },
+    "Console": {
+      "LogLevel": {
+        "Default": "Warning",
+        "Microsoft": "Warning"
+      }
+    }
+  }
+}

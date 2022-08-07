@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
@@ -101,9 +100,6 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 						{
 							return;
 						}
-
-						Logger.LogWarning(
-								$"There was a problem while animating in {nameof(RandomizedWorldPointsBehavior)}: '{ex}'.");
 					}
 				}
 			},

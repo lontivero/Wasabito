@@ -30,7 +30,7 @@ public class AliceTimeoutTests
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
-		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
+		using RoundStateUpdater roundStateUpdater = new(arena, period: TimeSpan.FromSeconds(2));
 		await roundStateUpdater.StartAsync(testDeadlineCts.Token);
 
 		// Register Alices.

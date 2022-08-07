@@ -53,7 +53,7 @@ public class BobClientTests
 			wabiSabiApi);
 		Assert.Equal(Phase.InputRegistration, round.Phase);
 
-		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
+		using RoundStateUpdater roundStateUpdater = new(wabiSabiApi, period: TimeSpan.FromSeconds(2));
 		await roundStateUpdater.StartAsync(CancellationToken.None);
 
 		var keyChain = new KeyChain(km, "");

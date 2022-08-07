@@ -33,9 +33,9 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 
 	public StatusIconViewModel(TorStatusCheckerWrapper statusCheckerWrapper)
 	{
-		UseTor = Services.Config.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
+		UseTor = Services.TorOptions.UseTor; // Do not make it dynamic, because if you change this config settings only next time will it activate.
 		TorStatus = UseTor ? Services.Synchronizer.TorStatus : TorStatus.TurnedOff;
-		UseBitcoinCore = Services.Config.StartLocalBitcoinCoreOnStartup;
+		UseBitcoinCore = Services.BitcoinIntegrationOptions.StartLocalBitcoinCoreOnStartup;
 
 		UpdateCommand = ReactiveCommand.CreateFromTask( () =>  IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
 		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://status.torproject.org"));
@@ -122,10 +122,10 @@ public partial class StatusIconViewModel : IStatusIconViewModel, IDisposable
 
 	public void Initialize()
 	{
-		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
+		var nodes = Services.GetRequiredService<P2pNetwork>().Nodes.ConnectedNodes;
 		var synchronizer = Services.Synchronizer;
-		var rpcMonitor = Services.HostedServices.GetOrDefault<RpcMonitor>();
-		var updateChecker = Services.HostedServices.Get<UpdateChecker>();
+		var rpcMonitor = Services.GetService<RpcMonitor>();
+		var updateChecker = Services.GetRequiredService<UpdateChecker>();
 
 		BitcoinCoreStatus = rpcMonitor?.RpcStatus ?? RpcStatus.Unresponsive;
 

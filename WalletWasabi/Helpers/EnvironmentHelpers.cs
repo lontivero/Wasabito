@@ -1,5 +1,5 @@
-using Microsoft.Win32;
 using System.Collections.Concurrent;
+using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -13,65 +13,21 @@ namespace WalletWasabi.Helpers;
 
 public static class EnvironmentHelpers
 {
-	[Flags]
-	private enum EXECUTION_STATE : uint
+	public static string GetDefaultDataDir() =>
+		RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+			? "%APPDATA%\\wwl"
+			: "%HOME%/wwl";
+		
+		
+
+	public static string ExpandDirectory(string dir)
 	{
-		ES_AWAYMODE_REQUIRED = 0x00000040,
-		ES_CONTINUOUS = 0x80000000,
-		ES_DISPLAY_REQUIRED = 0x00000002,
-		ES_SYSTEM_REQUIRED = 0x00000001
-	}
+		var directory = Environment.ExpandEnvironmentVariables(dir);
 
-	// appName, dataDir
-	private static ConcurrentDictionary<string, string> DataDirDict { get; } = new ConcurrentDictionary<string, string>();
-
-	// Do not change the output of this function. Backwards compatibility depends on it.
-	public static string GetDataDir(string appName)
-	{
-		if (DataDirDict.TryGetValue(appName, out string? dataDir))
+		if (!Directory.Exists(directory))
 		{
-			return dataDir;
+			Directory.CreateDirectory(directory);
 		}
-
-		string directory;
-
-		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			var home = Environment.GetEnvironmentVariable("HOME");
-			if (!string.IsNullOrEmpty(home))
-			{
-				directory = Path.Combine(home, "." + appName.ToLowerInvariant());
-				Logger.LogInfo($"Using HOME environment variable for initializing application data at `{directory}`.");
-			}
-			else
-			{
-				throw new DirectoryNotFoundException("Could not find suitable datadir.");
-			}
-		}
-		else
-		{
-			var localAppData = Environment.GetEnvironmentVariable("APPDATA");
-			if (!string.IsNullOrEmpty(localAppData))
-			{
-				directory = Path.Combine(localAppData, appName);
-				Logger.LogInfo($"Using APPDATA environment variable for initializing application data at `{directory}`.");
-			}
-			else
-			{
-				throw new DirectoryNotFoundException("Could not find suitable datadir.");
-			}
-		}
-
-		if (Directory.Exists(directory))
-		{
-			DataDirDict.TryAdd(appName, directory);
-			return directory;
-		}
-
-		Logger.LogInfo($"Creating data directory at `{directory}`.");
-		Directory.CreateDirectory(directory);
-
-		DataDirDict.TryAdd(appName, directory);
 		return directory;
 	}
 
@@ -195,29 +151,11 @@ public static class EnvironmentHelpers
 		return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"{fluentExecutable}.exe" : $"{fluentExecutable}";
 	}
 
-	[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-	private static extern EXECUTION_STATE SetThreadExecutionState(EXECUTION_STATE esFlags);
-
 	/// <summary>
 	/// Reset the system sleep timer, this method has to be called from time to time to prevent sleep.
 	/// It does not prevent the display to turn off.
 	/// </summary>
 	public static async Task ProlongSystemAwakeAsync()
 	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			// Reset the system sleep timer.
-			var result = SetThreadExecutionState(EXECUTION_STATE.ES_SYSTEM_REQUIRED);
-			if (result == 0)
-			{
-				throw new InvalidOperationException("SetThreadExecutionState failed.");
-			}
-		}
-		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-		{
-			// Prevent macOS system from idle sleep and keep it for 1 second. This will reset the idle sleep timer.
-			string shellCommand = $"caffeinate -i -t 1";
-			await ShellExecAsync(shellCommand, waitForExit: true).ConfigureAwait(false);
-		}
 	}
 }
