@@ -3,7 +3,9 @@ using NBitcoin.Protocol;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
@@ -15,12 +17,15 @@ public class P2pNode
 {
 	private bool _disposed = false;
 
-	public P2pNode(Network network, EndPoint endPoint, MempoolService mempoolService, string userAgent)
+	public P2pNode(Network network, IOptions<BitcoinOptions> cfg, MempoolService mempoolService)
+		: this(network, cfg.Value.Host, mempoolService)
+	{}
+
+	internal P2pNode(Network network, EndPoint p2pEndpoint, MempoolService mempoolService)
 	{
 		Network = Guard.NotNull(nameof(network), network);
-		EndPoint = Guard.NotNull(nameof(endPoint), endPoint);
+		EndPoint = Guard.NotNull(nameof(p2pEndpoint), p2pEndpoint);
 		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
-		UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
 
 		Stop = new CancellationTokenSource();
 		NodeEventsSubscribed = false;

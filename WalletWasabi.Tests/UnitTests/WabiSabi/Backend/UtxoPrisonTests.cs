@@ -48,7 +48,7 @@ public class UtxoPrisonTests
 		Assert.NotEqual(currentChangeId, p.ChangeId);
 		currentChangeId = p.ChangeId;
 
-		p.ReleaseEligibleInmates(normalBanPeriod: TimeSpan.FromMilliseconds(1), longBanPeriod: TimeSpan.FromSeconds(1));
+		p.ReleaseEligibleInmates(normalBanPeriod: TimeSpan.FromMilliseconds(1));
 		Assert.NotEqual(currentChangeId, p.ChangeId);
 	}
 
@@ -108,7 +108,7 @@ public class UtxoPrisonTests
 
 		Assert.Single(p.GetInmates());
 
-		p.ReleaseEligibleInmates(normalBanPeriod: TimeSpan.FromSeconds(1), longBanPeriod: TimeSpan.FromDays(31));
+		p.ReleaseEligibleInmates(normalBanPeriod: TimeSpan.FromSeconds(1));
 
 		Assert.Empty(p.GetInmates());
 	}

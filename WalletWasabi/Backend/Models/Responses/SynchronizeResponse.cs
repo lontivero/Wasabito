@@ -16,7 +16,4 @@ public class SynchronizeResponse
 	public int BestHeight { get; set; }
 
 	public AllFeeEstimate? AllFeeEstimate { get; set; }
-
-	[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
-	public IEnumerable<uint256> UnconfirmedCoinJoins { get; set; }
 }

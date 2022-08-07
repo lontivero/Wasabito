@@ -7,8 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers;
@@ -20,16 +20,16 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BatchController : ControllerBase
 {
-	public BatchController(BlockchainController blockchainController, HomeController homeController, Global global)
+	public BatchController(BlockchainController blockchainController, HomeController homeController, IndexBuilderService indexBuilderService)
 	{
 		BlockchainController = blockchainController;
 		HomeController = homeController;
-		Global = global;
+		IndexBuilderService = indexBuilderService;
 	}
 
-	public Global Global { get; }
 	public BlockchainController BlockchainController { get; }
 	public HomeController HomeController { get; }
+	public IndexBuilderService IndexBuilderService { get; }
 
 	[HttpGet("synchronize")]
 	public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int maxNumberOfFilters, [FromQuery] string? estimateSmartFeeMode = nameof(EstimateSmartFeeMode.Conservative))
@@ -49,7 +49,7 @@ public class BatchController : ControllerBase
 			return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
 		}
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+		(Height bestHeight, IEnumerable<FilterModel> filters) = IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
 		var response = new SynchronizeResponse { Filters = Enumerable.Empty<FilterModel>(), BestHeight = bestHeight };
 
@@ -69,14 +69,7 @@ public class BatchController : ControllerBase
 
 		if (estimateSmartFee)
 		{
-			try
-			{
-				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-			}
+			response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
 		}
 
 		return Ok(response);

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Backend;
 

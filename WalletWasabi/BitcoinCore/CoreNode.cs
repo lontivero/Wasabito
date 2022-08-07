@@ -240,7 +240,7 @@ public class CoreNode
 		}
 		cancel.ThrowIfCancellationRequested();
 
-		coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService, coreNodeParams.UserAgent);
+		coreNode.P2pNode = new P2pNode(coreNode.Network, coreNode.P2pEndPoint, coreNode.MempoolService);
 		await coreNode.P2pNode.ConnectAsync(cancel).ConfigureAwait(false);
 		cancel.ThrowIfCancellationRequested();
 

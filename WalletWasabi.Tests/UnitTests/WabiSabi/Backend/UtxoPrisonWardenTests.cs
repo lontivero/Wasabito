@@ -1,6 +1,8 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Moq;
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
@@ -16,8 +18,8 @@ public class UtxoPrisonWardenTests
 	{
 		var workDir = Common.GetWorkDir(nameof(CanStartAndStopAsync));
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
-		CoordinatorParameters coordinatorParameters = new(workDir);
-		using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
+		var mockDoSOptions = CreateDoSOptions();
+		using var w = new Warden(mockDoSOptions.Object);
 		await w.StartAsync(CancellationToken.None);
 		await w.StopAsync(CancellationToken.None);
 	}
@@ -29,8 +31,8 @@ public class UtxoPrisonWardenTests
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		// Create prison.
-		CoordinatorParameters coordinatorParameters = new(workDir);
-		using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
+		var mockDoSOptions = CreateDoSOptions();
+		using var w = new Warden(mockDoSOptions.Object);
 		await w.StartAsync(CancellationToken.None);
 		var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
 		var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
@@ -42,8 +44,7 @@ public class UtxoPrisonWardenTests
 		await w.StopAsync(CancellationToken.None);
 
 		// See if prev UTXOs are loaded.
-		CoordinatorParameters coordinatorParameters2 = new(workDir);
-		using var w2 = new Warden(coordinatorParameters2.UtxoWardenPeriod, coordinatorParameters2.PrisonFilePath, coordinatorParameters2.RuntimeCoordinatorConfig);
+		using var w2 = new Warden(mockDoSOptions.Object);
 		await w2.StartAsync(CancellationToken.None);
 
 		Assert.True(w2.Prison.TryGet(i1.Utxo, out var sameI1));
@@ -66,8 +67,8 @@ public class UtxoPrisonWardenTests
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		// Create prison.
-		CoordinatorParameters coordinatorParameters = new(workDir);
-		using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
+		var mockDoSOptions = new TesteableOptionsMonitor<DoSOptions>(new DoSOptions());
+		using var w = new Warden(mockDoSOptions);
 		await w.StartAsync(CancellationToken.None);
 		var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
 		var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
@@ -78,9 +79,9 @@ public class UtxoPrisonWardenTests
 		await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 
 		// Make sure it does not serialize again as there was no change.
-		File.Delete(w.PrisonFilePath);
+		File.Delete(w.DoSOptions.CurrentValue.PrisonFilePath);
 		await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
-		Assert.False(File.Exists(w.PrisonFilePath));
+		Assert.False(File.Exists(w.DoSOptions.CurrentValue.PrisonFilePath));
 		await w.StopAsync(CancellationToken.None);
 	}
 
@@ -91,10 +92,15 @@ public class UtxoPrisonWardenTests
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		// Create prison.
-		CoordinatorParameters coordinatorParameters = new(workDir);
-		coordinatorParameters.RuntimeCoordinatorConfig.ReleaseUtxoFromPrisonAfter = TimeSpan.FromMilliseconds(1);
+		var mockDoSOptions = new Mock<IOptionsMonitor<DoSOptions>>();
+		mockDoSOptions.Setup(x => x.CurrentValue).Returns(
+			new DoSOptions
+			{
+				PrisonFilePath = "prision.txt",
+				ReleaseUtxoFromPrisonAfter = TimeSpan.FromMilliseconds(1)
+			});
 
-		using var w = new Warden(coordinatorParameters.UtxoWardenPeriod, coordinatorParameters.PrisonFilePath, coordinatorParameters.RuntimeCoordinatorConfig);
+		using var w = new Warden(mockDoSOptions.Object);
 		await w.StartAsync(CancellationToken.None);
 		var i1 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Noted, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
 		var i2 = new Inmate(BitcoinFactory.CreateOutPoint(), Punishment.Banned, DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()), uint256.Zero);
@@ -107,5 +113,13 @@ public class UtxoPrisonWardenTests
 		await w.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(7));
 		Assert.Empty(p.GetInmates());
 		await w.StopAsync(CancellationToken.None);
+	}
+
+	private static Mock<IOptionsMonitor<DoSOptions>> CreateDoSOptions()
+	{
+		DoSOptions options = new();
+		var mockDoSOptions = new Mock<IOptionsMonitor<DoSOptions>>();
+		mockDoSOptions.Setup(o => o.CurrentValue).Returns(options);
+		return mockDoSOptions;
 	}
 }

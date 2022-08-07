@@ -2,6 +2,7 @@ using Moq;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
@@ -38,7 +39,8 @@ public class ArenaBuilder
 		ICoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new CoinJoinIdStore();
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
 
-		Arena arena = new(period, network, config, rpc, prison, coinJoinIdStore, roundParameterFactory);
+		var testeableCfg = new TesteableOptionsMonitor<WabiSabiConfig>(config);
+		Arena arena = new(network, testeableCfg, rpc, prison, coinJoinIdStore, roundParameterFactory, period: period);
 
 		foreach (var round in rounds)
 		{
@@ -98,4 +100,11 @@ public class ArenaBuilder
 
 	private static RoundParameterFactory CreateRoundParameterFactory(WabiSabiConfig cfg, Network network) =>
 		WabiSabiFactory.CreateRoundParametersFactory(cfg, network, maxVsizeAllocationPerAlice: 11 + 31 + MultipartyTransactionParameters.SharedOverhead);
+
+	private static IOptionsMonitor<WabiSabiConfig> CreateMockOptionsMonitor(WabiSabiConfig wabiSabiConfig)
+	{
+		var mockOptionsMonitor = new Mock<IOptionsMonitor<WabiSabiConfig>>();
+		mockOptionsMonitor.SetupGet(x => x.CurrentValue).Returns(wabiSabiConfig);
+		return mockOptionsMonitor.Object;
+	}
 }

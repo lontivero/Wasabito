@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
@@ -42,23 +44,28 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 
 	protected override IHostBuilder CreateHostBuilder()
 	{
-		var builder = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(x => x.UseStartup<TStartup>().UseTestServer());
-		return builder;
+		return Host
+			.CreateDefaultBuilder()
+			.ConfigureWebHostDefaults(x => x.UseStartup<TStartup>().UseTestServer());
 	}
 
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
 	{
 		// will be called after the `ConfigureServices` from the Startup
-		builder.ConfigureTestServices(services =>
+		builder.ConfigureServices(services =>
 		{
 			services.AddHostedService<BackgroundServiceStarter<Arena>>();
 			services.AddSingleton<Arena>();
 			services.AddSingleton(_ => Network.RegTest);
 			services.AddScoped<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 			services.AddScoped<Prison>();
-			services.AddScoped<WabiSabiConfig>();
 			services.AddScoped<RoundParameterFactory>();
-			services.AddScoped(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
+			services.AddScoped<IOptionsMonitor<WabiSabiConfig>>( _ => new TesteableOptionsMonitor<WabiSabiConfig>(new ()));
+			services.AddScoped(provider =>
+				{
+					var cfg = provider.GetRequiredService<IOptionsMonitor<WabiSabiConfig>>();
+					return cfg.CurrentValue;
+				});
 			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
 			services.AddScoped(s => new CoinJoinScriptStore());
 			services.AddSingleton<CoinJoinFeeRateStatStore>();
@@ -67,6 +74,8 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 		{
 			o.SetMinimumLevel(LogLevel.Warning);
 		});
+
+		base.ConfigureWebHost(builder);
 	}
 
 	public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>

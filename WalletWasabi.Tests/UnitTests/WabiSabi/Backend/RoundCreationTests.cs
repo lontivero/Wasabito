@@ -4,11 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
+using Microsoft.Extensions.Options;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
@@ -25,7 +24,7 @@ public class RoundCreationTests
 	[Fact]
 	public async Task InitializesRoundAsync()
 	{
-		WabiSabiConfig cfg = new();
+		WabiSabiConfig cfg = new ();
 		var mockRpc = new MockRpcClient();
 		mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
 			await Task.FromResult(new EstimateSmartFeeResponse
@@ -46,7 +45,7 @@ public class RoundCreationTests
 	[Fact]
 	public async Task CreatesRoundIfNoneInputRegistrationAsync()
 	{
-		WabiSabiConfig cfg = new();
+		WabiSabiConfig cfg = new ();
 		var mockRpc = new MockRpcClient();
 		mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
 			await Task.FromResult(new EstimateSmartFeeResponse
@@ -71,7 +70,7 @@ public class RoundCreationTests
 	[Fact]
 	public async Task CreatesRoundIfInBlameInputRegistrationAsync()
 	{
-		WabiSabiConfig cfg = new();
+		WabiSabiConfig cfg = new ();
 		var mockRpc = new MockRpcClient();
 		mockRpc.OnEstimateSmartFeeAsync = async (target, _) =>
 			await Task.FromResult(new EstimateSmartFeeResponse
@@ -97,4 +96,7 @@ public class RoundCreationTests
 
 		await arena.StopAsync(CancellationToken.None);
 	}
+
+	private static IOptionsMonitor<WabiSabiConfig> CreateMockOptionsMonitor(WabiSabiConfig wabiSabiConfig) =>
+		new TesteableOptionsMonitor<WabiSabiConfig>(wabiSabiConfig);
 }

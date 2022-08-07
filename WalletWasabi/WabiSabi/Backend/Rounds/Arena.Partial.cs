@@ -48,7 +48,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
 
-			if (round.IsInputRegistrationEnded(Config.MaxInputCountByRound))
+			if (round.IsInputRegistrationEnded(Config.CurrentValue.MaxInputCountByRound))
 			{
 				throw new WrongPhaseException(round, Phase.InputRegistration);
 			}
@@ -355,7 +355,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		OutPoint input = request.Input;
 
-		if (Prison.TryGet(input, out var inmate))
+		if (Prison.TryGet(input, out var inmate) && (!Config.CurrentValue.AllowNotedInputRegistration || inmate.Punishment != Punishment.Noted))
 		{
 			DateTimeOffset bannedUntil;
 			if (inmate.Punishment == Punishment.LongBanned)

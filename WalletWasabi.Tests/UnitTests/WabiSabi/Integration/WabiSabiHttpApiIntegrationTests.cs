@@ -7,6 +7,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Options;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
@@ -133,7 +135,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				// Instruct the coordinator DI container to use these two scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddScoped(s => new WabiSabiConfig
+				services.AddScoped<IRPCClient>(s => rpc);
+
+				services.AddScoped<IOptionsMonitor<WabiSabiConfig>>(_ => new TesteableOptionsMonitor<WabiSabiConfig>(new ()
 				{
 					MaxInputCountByRound = inputCount - 1,  // Make sure that at least one IR fails for WrongPhase
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
@@ -141,7 +145,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(60),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				});
+				}));
 
 				// Emulate that the first coin is coming from a coinjoin.
 				services.AddScoped(s => new InMemoryCoinJoinIdStore(new[] { coins[0].Coin.Outpoint.Hash }));
@@ -338,7 +342,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		{
 			// Instruct the coordinator DI container to use this scoped
 			// services to build everything (WabiSabi controller, arena, etc)
-			services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig
+			services.AddScoped<IRPCClient>(s => rpc);
+
+			services.AddScoped<IOptionsMonitor<WabiSabiConfig>>(_ => new TesteableOptionsMonitor<WabiSabiConfig>(new ()
 			{
 				MaxInputCountByRound = 2 * inputCount,
 				StandardInputRegistrationTimeout = TimeSpan.FromSeconds(60),
@@ -347,7 +353,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				OutputRegistrationTimeout = TimeSpan.FromSeconds(60),
 				TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
 				MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-			});
+			}));
 		})).CreateClient();
 
 		// Create the coinjoin client
@@ -439,7 +445,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					// Instruct the coordinator DI container to use these two scoped
 					// services to build everything (WabiSabi controller, arena, etc)
 					services.AddScoped<IRPCClient>(s => rpc);
-					services.AddScoped<WabiSabiConfig>(s => new WabiSabiConfig(Path.GetTempFileName())
+					services.AddScoped<IOptionsMonitor<WabiSabiConfig>>(_ => new TesteableOptionsMonitor<WabiSabiConfig>(new ()
 					{
 						MaxRegistrableAmount = Money.Coins(500m),
 						MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + 10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness))),
@@ -449,7 +455,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 						OutputRegistrationTimeout = TimeSpan.FromSeconds(3 * ExpectedInputNumber),
 						TransactionSigningTimeout = TimeSpan.FromSeconds(2 * ExpectedInputNumber),
 						MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-					});
+					}));
 				}));
 
 			using PersonCircuit personCircuit = new();

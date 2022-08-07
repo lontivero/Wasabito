@@ -7,13 +7,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Mempool;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers;
@@ -25,22 +26,33 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BlockchainController : ControllerBase
 {
+	private readonly ILogger<BlockchainController> _logger;
 	public static readonly TimeSpan FilterTimeout = TimeSpan.FromMinutes(20);
 
-	public BlockchainController(IMemoryCache memoryCache, Global global)
+	public BlockchainController(
+		IMemoryCache memoryCache,
+		IRPCClient rpc,
+		MempoolMirror mempoolMirror,
+		IndexBuilderService indexBuilderService,
+		ILogger<BlockchainController> logger)
 	{
+		_logger = logger;
 		Cache = memoryCache;
-		Global = global;
+		RpcClient = rpc;
+		MempoolMirror = mempoolMirror;
+		IndexBuilderService = indexBuilderService;
 	}
 
-	private IRPCClient RpcClient => Global.RpcClient;
-	private Network Network => Global.Config.Network;
+	private IRPCClient RpcClient { get; }
+	public MempoolMirror MempoolMirror { get; }
+	public IndexBuilderService IndexBuilderService { get; }
+
+	private Network Network => RpcClient.Network;
 
 	public static Dictionary<uint256, string> TransactionHexCache { get; } = new Dictionary<uint256, string>();
 	public static object TransactionHexCacheLock { get; } = new object();
 
 	public IMemoryCache Cache { get; }
-	public Global Global { get; }
 
 	/// <summary>
 	/// Get all fees.
@@ -120,7 +132,7 @@ public class BlockchainController : ControllerBase
 
 	private async Task<IEnumerable<string>> GetRawMempoolStringsNoCacheAsync()
 	{
-		uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+		uint256[] transactionHashes = await RpcClient.GetRawMempoolAsync();
 		return transactionHashes.Select(x => x.ToString());
 	}
 
@@ -201,7 +213,7 @@ public class BlockchainController : ControllerBase
 		}
 		catch (Exception ex)
 		{
-			Logger.LogDebug(ex);
+			_logger.LogDebug(ex, "Unexpected error.");
 			return BadRequest(ex.Message);
 		}
 	}
@@ -232,7 +244,7 @@ public class BlockchainController : ControllerBase
 		}
 		catch (Exception ex)
 		{
-			Logger.LogDebug(ex);
+			_logger.LogDebug(ex, "Unexpected error.");
 			return BadRequest("Invalid hex.");
 		}
 
@@ -246,8 +258,8 @@ public class BlockchainController : ControllerBase
 		}
 		catch (RPCException ex)
 		{
-			Logger.LogDebug(ex);
-			var spenders = Global.HostedServices.Get<MempoolMirror>().GetSpenderTransactions(transaction.Inputs.Select(x => x.PrevOut));
+			_logger.LogDebug(ex, "Unexpected error.");
+			var spenders = MempoolMirror.GetSpenderTransactions(transaction.Inputs.Select(x => x.PrevOut));
 			return BadRequest($"{ex.Message}:::{string.Join(":::", spenders.Select(x => x.ToHex()))}");
 		}
 
@@ -286,7 +298,7 @@ public class BlockchainController : ControllerBase
 
 		var knownHash = new uint256(bestKnownBlockHash);
 
-		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+		(Height bestHeight, IEnumerable<FilterModel> filters) = IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 		if (!found)
 		{

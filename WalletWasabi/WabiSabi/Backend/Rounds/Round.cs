@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Models;
@@ -84,7 +85,6 @@ public class Round
 			throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
 		}
 
-		this.LogInfo($"Phase changed: {Phase} -> {phase}");
 		Phase = phase;
 
 		if (phase == Phase.ConnectionConfirmation)

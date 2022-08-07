@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Helpers;
@@ -14,7 +15,7 @@ namespace WalletWasabi.WabiSabi.Backend.Statistics;
 
 public class CoinJoinFeeRateStatStore : PeriodicRunner
 {
-	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats)
+	public CoinJoinFeeRateStatStore(IOptionsMonitor<WabiSabiConfig> config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats)
 		: base(TimeSpan.FromMinutes(10))
 	{
 		Config = config;
@@ -22,7 +23,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		CoinJoinFeeRateStats = new(feeRateStats.OrderBy(x => x.DateTimeOffset));
 	}
 
-	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc)
+	public CoinJoinFeeRateStatStore(IOptionsMonitor<WabiSabiConfig> config, IRPCClient rpc)
 		: this(config, rpc, Enumerable.Empty<CoinJoinFeeRateStat>())
 	{
 	}
@@ -35,16 +36,16 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 	private CoinJoinFeeRateMedian[] DefaultMedians { get; set; } = Array.Empty<CoinJoinFeeRateMedian>();
 
-	private WabiSabiConfig Config { get; }
+	private IOptionsMonitor<WabiSabiConfig> Config { get; }
 	private IRPCClient Rpc { get; }
 
 	public event EventHandler<CoinJoinFeeRateStat>? NewStat;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancel).ConfigureAwait(false)).FeeRate;
+		var feeRate = (await Rpc.EstimateSmartFeeAsync((int)Config.CurrentValue.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancel).ConfigureAwait(false)).FeeRate;
 
-		CoinJoinFeeRateStat feeRateStat = new(DateTimeOffset.UtcNow, Config.ConfirmationTarget, feeRate);
+		CoinJoinFeeRateStat feeRateStat = new(DateTimeOffset.UtcNow, Config.CurrentValue.ConfirmationTarget, feeRate);
 		Add(feeRateStat);
 		NewStat?.Invoke(this, feeRateStat);
 	}
@@ -85,20 +86,5 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	public CoinJoinFeeRateMedian[] GetDefaultMedians()
 	{
 		return DefaultMedians;
-	}
-
-	public static CoinJoinFeeRateStatStore LoadFromFile(string filePath, WabiSabiConfig config, IRPCClient rpc)
-	{
-		var from = DateTimeOffset.UtcNow - MaximumTimeToStore;
-
-		var stats = !File.Exists(filePath)
-			? Enumerable.Empty<CoinJoinFeeRateStat>()
-			: File.ReadAllLines(filePath)
-				.Select(x => CoinJoinFeeRateStat.FromLine(x))
-				.Where(x => x.DateTimeOffset >= from);
-
-		var store = new CoinJoinFeeRateStatStore(config, rpc, stats);
-
-		return store;
 	}
 }

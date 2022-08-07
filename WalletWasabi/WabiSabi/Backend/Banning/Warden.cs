@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
 
@@ -13,21 +14,18 @@ namespace WalletWasabi.WabiSabi.Backend.Banning;
 /// </summary>
 public class Warden : PeriodicRunner
 {
-	/// <param name="period">How often to serialize and release inmates.</param>
-	public Warden(TimeSpan period, string prisonFilePath, WabiSabiConfig config) : base(period)
+	public Warden(IOptionsMonitor<DoSOptions> cfg) : base(TimeSpan.FromMinutes(1))
 	{
-		PrisonFilePath = prisonFilePath;
-		Config = config;
-		Prison = DeserializePrison(PrisonFilePath);
+		DoSOptions = cfg;
+		Prison = DeserializePrison(DoSOptions.CurrentValue.PrisonFilePath);
 		LastKnownChange = Prison.ChangeId;
 	}
 
 	public Prison Prison { get; }
 	public Guid LastKnownChange { get; private set; }
 
-	public string PrisonFilePath { get; }
-	public WabiSabiConfig Config { get; }
-
+	public IOptionsMonitor<DoSOptions> DoSOptions { get; }
+	
 	private static Prison DeserializePrison(string prisonFilePath)
 	{
 		IoHelpers.EnsureContainingDirectoryExists(prisonFilePath);
@@ -67,14 +65,13 @@ public class Warden : PeriodicRunner
 
 	public async Task SerializePrisonAsync()
 	{
-		IoHelpers.EnsureContainingDirectoryExists(PrisonFilePath);
-		await File.WriteAllLinesAsync(PrisonFilePath, Prison.GetInmates().Select(x => x.ToString())).ConfigureAwait(false);
+		IoHelpers.EnsureContainingDirectoryExists(DoSOptions.CurrentValue.PrisonFilePath);
+		await File.WriteAllLinesAsync(DoSOptions.CurrentValue.PrisonFilePath, Prison.GetInmates().Select(x => x.ToString())).ConfigureAwait(false);
 	}
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var count = Prison.ReleaseEligibleInmates(Config.ReleaseUtxoFromPrisonAfter, Config.ReleaseUtxoFromPrisonAfterLongBan).Count();
-
+		var count = Prison.ReleaseEligibleInmates(DoSOptions.CurrentValue.ReleaseUtxoFromPrisonAfter).Count();
 		if (count > 0)
 		{
 			Logger.LogInfo($"{count} UTXOs are released from prison.");

@@ -257,10 +257,10 @@ public class Global
 
 	private void RegisterLocalNodeDependantComponents(CoreNode coreNode)
 	{
-		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(TimeSpan.FromSeconds(7), coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
+		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
 		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
-		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(TimeSpan.FromSeconds(21), coreNode.RpcClient, coreNode.P2pNode), "Full Node Mempool Mirror");
+		HostedServices.Register<MempoolMirror>(() => new MempoolMirror(coreNode.RpcClient, coreNode.P2pNode), "Full Node Mempool Mirror");
 	}
 
 	private void RegisterFeeRateProviders()
