@@ -1,14 +1,10 @@
 Wasabito is an attempt to completely redesign Wasabi Wallet to make it reach it's full potential:
 
 
-See the Introduction wiki page and Roadmap for more information.
-
-<p align="center">
-<img src="https://user-images.githubusercontent.com/51679301/169354261-c894bac0-27f2-4a29-8470-a7519963a4b5.jpg">
-</p>
+![image](https://user-images.githubusercontent.com/127973/183272381-b040f84e-d5b7-42b5-b6a4-52ce7e0c438b.png)
 
 <h3 align="center">
-    An open-source, non-custodial, privacy-focused Bitcoin wallet for desktop.
+    An open-source, highly experimental, non-custodial, privacy-focused Bitcoin wallet for desktop.
 </h3>
 
 <br>
