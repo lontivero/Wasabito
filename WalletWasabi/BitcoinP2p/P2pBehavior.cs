@@ -11,11 +11,11 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinP2p;
 
-public abstract class P2pBehavior : NodeBehavior
+public class P2pBehavior : NodeBehavior
 {
 	private const int MaxInvSize = 50000;
 
-	protected P2pBehavior(MempoolService mempoolService)
+	public P2pBehavior(MempoolService mempoolService)
 	{
 		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 	}
@@ -76,7 +76,31 @@ public abstract class P2pBehavior : NodeBehavior
 		}
 	}
 
-	protected abstract bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint);
+	private bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint)
+	{
+		if (inv.Type.HasFlag(InventoryType.MSG_TX))
+		{
+			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction then adjust confirmation.
+			{
+				if (entry.NodeRemoteSocketEndpoint == remoteSocketEndpoint.ToString())
+				{
+					return false; // Wtf, why are you trying to broadcast it back to us?
+				}
+
+				entry.ConfirmPropagationOnce();
+			}
+
+			// If we already processed it or we're in trusted node mode, then don't ask for it.
+			if (MempoolService.IsProcessed(inv.Hash))
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
 
 	private async Task ProcessGetDataAsync(Node node, GetDataPayload payload)
 	{
@@ -95,27 +119,27 @@ public abstract class P2pBehavior : NodeBehavior
 					continue; // Would be strange. It could be some kind of attack.
 				}
 
-					try
+				try
+				{
+					var txPayload = new TxPayload(entry.Transaction.Transaction);
+					if (!node.IsConnected)
 					{
-						var txPayload = new TxPayload(entry.Transaction.Transaction);
-						if (!node.IsConnected)
-						{
-							Logger.LogInfo($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
-						}
-						else
-						{
-							await node.SendMessageAsync(txPayload).ConfigureAwait(false);
-							entry.MakeBroadcasted();
-							Logger.LogInfo($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
-						}
+						Logger.LogInfo($"Could not serve transaction. Node ({node.RemoteSocketEndpoint}) is not connected anymore: {entry.TransactionId}.");
 					}
-					catch (Exception ex)
+					else
 					{
-						Logger.LogInfo(ex);
+						await node.SendMessageAsync(txPayload).ConfigureAwait(false);
+						entry.MakeBroadcasted();
+						Logger.LogInfo($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
 					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogInfo(ex);
 				}
 			}
 		}
+	}
 
 	protected virtual void ProcessTx(TxPayload payload)
 	{
@@ -123,4 +147,6 @@ public abstract class P2pBehavior : NodeBehavior
 		transaction.PrecomputeHash(false, true);
 		MempoolService.Process(transaction);
 	}
+	
+	public override object Clone() => new P2pBehavior(MempoolService);	
 }

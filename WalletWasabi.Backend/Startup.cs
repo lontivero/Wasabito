@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 using NBitcoin.RPC;
 using WalletWasabi.Backend.Controllers.WabiSabi;
 using WalletWasabi.Backend.Middlewares;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;

@@ -7,7 +7,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin.Protocol;
 using ReactiveUI;
-using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Fluent.AppServices.Tor;
 using WalletWasabi.Fluent.Models;

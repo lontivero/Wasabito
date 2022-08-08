@@ -107,7 +107,7 @@ public class P2pTests
 
 		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 		CachedBlockProvider blockProvider = new(
-			new P2pBlockProvider(nodes, null, httpClientFactory, serviceConfig, network),
+			new P2pBlockProvider(nodes, httpClientFactory, serviceConfig, network),
 			bitcoinStore.BlockRepository);
 
 		using Wallet wallet = Wallet.CreateAndRegisterServices(

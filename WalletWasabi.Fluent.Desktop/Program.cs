@@ -17,18 +17,15 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NBitcoin;
-using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Rpc;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -188,7 +185,6 @@ public class Program
 
 			services.AddBackgroundService<RoundStateUpdater>( );
 			services.AddBackgroundService<CoinJoinManager>();
-			services.AddSingleton<CoinJoinProcessor>();
 
 			if (/*Config.UseTor && */ network != Network.RegTest)
 			{
@@ -203,7 +199,6 @@ public class Program
 				services.AddBackgroundService<TorMonitor>();
 			}
 
-			services.AddSingleton<IJsonRpcService, WasabiJsonRpcService>();
 			services.AddBackgroundService<JsonRpcServer>();
 
 			services.AddSingleton(p =>
@@ -211,7 +206,6 @@ public class Program
 				var p2pNetwork = p.GetRequiredService<P2pNetwork>();
 				return p2pNetwork.Nodes;
 			});
-			services.AddSingleton<CoreNode>(_=> null!);
 			services.AddSingleton<P2pBlockProvider>();
 			services.AddSingleton<IBlockProvider, SmartBlockProvider>(p =>
 			{

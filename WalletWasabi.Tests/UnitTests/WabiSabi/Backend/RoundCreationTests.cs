@@ -3,7 +3,7 @@ using NBitcoin.RPC;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using Microsoft.Extensions.Options;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;

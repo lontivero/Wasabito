@@ -5,7 +5,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;

@@ -4,7 +4,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore.Rpc.Models;
+using WalletWasabi.BitcoinRpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;

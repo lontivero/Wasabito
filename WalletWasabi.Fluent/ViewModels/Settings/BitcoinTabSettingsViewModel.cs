@@ -3,7 +3,7 @@ using System.Net;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;

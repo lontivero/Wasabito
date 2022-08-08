@@ -2,7 +2,7 @@ using NBitcoin;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
+using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 

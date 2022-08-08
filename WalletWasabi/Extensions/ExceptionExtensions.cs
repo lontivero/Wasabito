@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
 using WalletWasabi.Models;

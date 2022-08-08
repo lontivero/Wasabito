@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Controllers.WabiSabi;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Crypto.ZeroKnowledge;
