@@ -82,7 +82,6 @@ public class Startup
 
 		services.AddSingleton<Warden>();
 		services.AddSingleton<InMemoryCoinJoinIdStore>();
-		services.AddSingleton<CoinJoinFeeRateStatStore>();
 		services.AddSingleton<RoundParameterFactory>();
 
 		services.AddBackgroundService<Arena>();

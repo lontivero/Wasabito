@@ -83,7 +83,6 @@ public class CoinJoinClient
 					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
 					&& roundState.Phase == Phase.InputRegistration
 					&& roundState.BlameOf == uint256.Zero
-					&& IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate)
 					&& roundState.Id != excludeRound,
 				token)
 			.ConfigureAwait(false);
@@ -111,11 +110,6 @@ public class CoinJoinClient
 		if (roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min >= MinimumOutputAmountSanity)
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum output amount is too high.");
-		}
-
-		if (!IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate))
-		{
-			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
 		}
 
 		return roundState;
@@ -634,22 +628,6 @@ public class CoinJoinClient
 
 	private static int GetReps(IEnumerable<SmartCoin> group)
 		=> group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1);
-
-	public bool IsRoundEconomic(FeeRate roundFeeRate)
-	{
-		if (FeeRateMedianTimeFrame == default)
-		{
-			return true;
-		}
-
-		if (RoundStatusUpdater.CoinJoinFeeRateMedians.TryGetValue(FeeRateMedianTimeFrame, out var medianFeeRate))
-		{
-			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			return roundFeeRate.SatoshiPerByte <= medianFeeRate.SatoshiPerByte + 0.5m;
-		}
-
-		throw new InvalidOperationException($"Could not find median fee rate for time frame: {FeeRateMedianTimeFrame}.");
-	}
 
 	/// <summary>
 	/// Calculates how many inputs are desirable to be registered

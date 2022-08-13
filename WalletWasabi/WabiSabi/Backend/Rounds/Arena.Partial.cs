@@ -383,7 +383,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			return x;
 		}).ToArray();
 
-		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
+		return Task.FromResult(new RoundStateResponse(responseRoundStates));
 	}
 
 	private Round GetRound(uint256 roundId) =>

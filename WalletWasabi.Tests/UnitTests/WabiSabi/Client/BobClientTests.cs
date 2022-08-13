@@ -38,8 +38,7 @@ public class BobClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
-		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(new TesteableOptionsMonitor<WabiSabiConfig>(config), arena.Rpc);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;
 		var roundState = RoundState.FromRound(round);

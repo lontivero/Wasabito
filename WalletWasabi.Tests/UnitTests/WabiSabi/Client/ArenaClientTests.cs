@@ -66,8 +66,7 @@ public class ArenaClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
-		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(new TesteableOptionsMonitor<WabiSabiConfig>(config), arena.Rpc);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
 		var insecureRandom = new InsecureRandom();
 		var roundState = RoundState.FromRound(round);
@@ -185,8 +184,7 @@ public class ArenaClientTests
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
-		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(new TesteableOptionsMonitor<WabiSabiConfig>(config), arena.Rpc);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
 		var apiClient = new ArenaClient(null!, null!, wabiSabiApi);
 
@@ -225,8 +223,7 @@ public class ArenaClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
-		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(new TesteableOptionsMonitor<WabiSabiConfig>(config), arena.Rpc);
-		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
+		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
 		InsecureRandom rnd = InsecureRandom.Instance;
 		var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);

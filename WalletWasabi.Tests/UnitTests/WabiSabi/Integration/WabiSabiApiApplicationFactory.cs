@@ -68,7 +68,6 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 				});
 			services.AddScoped<ICoinJoinIdStore>(s => new CoinJoinIdStore());
 			services.AddScoped(s => new CoinJoinScriptStore());
-			services.AddSingleton<CoinJoinFeeRateStatStore>();
 		});
 		builder.ConfigureLogging(o =>
 		{
