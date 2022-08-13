@@ -13,7 +13,6 @@ public record RoundParameters
 	public RoundParameters(
 		Network network,
 		FeeRate miningFeeRate,
-		Money maxSuggestedAmount,
 		int minInputCountByRound,
 		int maxInputCountByRound,
 		MoneyRange allowedInputAmounts,
@@ -26,7 +25,6 @@ public record RoundParameters
 	{
 		Network = network;
 		MiningFeeRate = miningFeeRate;
-		MaxSuggestedAmount = maxSuggestedAmount;
 		MinInputCountByRound = minInputCountByRound;
 		MaxInputCountByRound = maxInputCountByRound;
 		AllowedInputAmounts = allowedInputAmounts;
@@ -44,7 +42,6 @@ public record RoundParameters
 
 	public Network Network { get; init; }
 	public FeeRate MiningFeeRate { get; init; }
-	public Money MaxSuggestedAmount { get; init; }
 	public int MinInputCountByRound { get; init; }
 	public int MaxInputCountByRound { get; init; }
 	public MoneyRange AllowedInputAmounts { get; init; }
@@ -78,13 +75,11 @@ public record RoundParameters
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
 		Network network,
-		FeeRate miningFeeRate,
-		Money maxSuggestedAmount)
+		FeeRate miningFeeRate)
 	{
 		return new RoundParameters(
 			network,
 			miningFeeRate,
-			maxSuggestedAmount,
 			wabiSabiConfig.MinInputCountByRound,
 			wabiSabiConfig.MaxInputCountByRound,
 			new MoneyRange(wabiSabiConfig.MinRegistrableAmount, wabiSabiConfig.MaxRegistrableAmount),

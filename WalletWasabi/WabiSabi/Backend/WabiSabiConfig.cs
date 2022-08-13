@@ -32,8 +32,6 @@ public class WabiSabiConfig
 
 	public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
 
-	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
-
 	public int RoundParallelization { get; set; } = 1;
 
 	public bool WW200CompatibleLoadBalancing { get; set; } = false;

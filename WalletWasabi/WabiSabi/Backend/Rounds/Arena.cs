@@ -47,7 +47,6 @@ public partial class Arena : PeriodicRunner
 		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
-		MaxSuggestedAmountProvider = new(Config.CurrentValue);
 	}
 
 	public event EventHandler<Transaction>? CoinJoinBroadcast;
@@ -62,7 +61,6 @@ public partial class Arena : PeriodicRunner
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
 	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
-	public MaxSuggestedAmountProvider MaxSuggestedAmountProvider { get; }
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -95,8 +93,7 @@ public partial class Arena : PeriodicRunner
 		// Order rounds ascending by max suggested amount, then ascending by input count.
 		// This will make sure WW2.0.1 clients register according to our desired order.
 		var rounds = Rounds
-						.OrderBy(x => x.Parameters.MaxSuggestedAmount)
-						.ThenBy(x => x.InputCount)
+						.OrderBy(x => x.InputCount)
 						.ToList();
 
 		var standardRegistrableRounds = rounds
@@ -149,14 +146,12 @@ public partial class Arena : PeriodicRunner
 						continue;
 					}
 
-					MaxSuggestedAmountProvider.StepMaxSuggested(round, false);
 					round.EndRound(EndRoundState.AbortedNotEnoughAlices);
 
 					_logger.LogInformation("Not enough inputs ({inputs}) in {phase} phase. Minimum is {minimum}.", round.InputCount, nameof(Phase.InputRegistration), Config.CurrentValue.MinInputCountByRound); // FIXME: use round parameters instead of Config
 				}
 				else if (round.IsInputRegistrationEnded(Config.CurrentValue.MaxInputCountByRound))
 				{
-					MaxSuggestedAmountProvider.StepMaxSuggested(round, true);
 					round.SetPhase(Phase.ConnectionConfirmation);
 				}
 			}
@@ -424,22 +419,20 @@ public partial class Arena : PeriodicRunner
 
 				// 0.75 to bias towards larger numbers as larger input owners often have many smaller inputs too.
 				var smallSuggestion = allInputs.Skip((int)(allInputs.Length * Config.CurrentValue.WW200CompatibleLoadBalancingInputSplit)).First();
-				var largeSuggestion = MaxSuggestedAmountProvider.AbsoluteMaximumInput;
 
 				var roundWithoutThis = Rounds.Except(new[] { round });
-				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, largeSuggestion);
+				RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate);
 				Round? foundLargeRound = roundWithoutThis
 					.FirstOrDefault(x =>
 									x.Phase == Phase.InputRegistration
 									&& x is not BlameRound
 									&& !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)
-									&& x.Parameters.MaxSuggestedAmount >= allInputs.Max()
 									&& x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromSeconds(60));
 				var largeRound = foundLargeRound ?? TryMineRound(parameters, roundWithoutThis.ToArray());
 
 				if (largeRound is not null)
 				{
-					parameters = RoundParameterFactory.CreateRoundParameter(feeRate, smallSuggestion);
+					parameters = RoundParameterFactory.CreateRoundParameter(feeRate);
 					var smallRound = TryMineRound(parameters, roundWithoutThis.Concat(new[] { largeRound }).ToArray());
 
 					// If creation is successful destory round only.
@@ -468,11 +461,10 @@ public partial class Arena : PeriodicRunner
         feeRate ??= (await Rpc.EstimateSmartFeeAsync((int)Config.CurrentValue.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, cancellationToken).ConfigureAwait(false)).FeeRate;
 		for (int i = 0; i < roundsToCreate; i++)
 		{
-			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate, MaxSuggestedAmountProvider.MaxSuggestedAmount);
+			RoundParameters parameters = RoundParameterFactory.CreateRoundParameter(feeRate);
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			Rounds.Add(r);
-			_logger.LogInformation("Created round with params: {paramName}:'{maxSuggestedAmount}' BTC.",nameof(r.Parameters.MaxSuggestedAmount), r.Parameters.MaxSuggestedAmount);
 		}
 	}
 
@@ -494,8 +486,7 @@ public partial class Arena : PeriodicRunner
 			roundsCopy.Add(r);
 			orderedRounds = roundsCopy
 				.Where(x => x.Phase == Phase.InputRegistration && x is not BlameRound && !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
-				.OrderBy(x => x.Parameters.MaxSuggestedAmount)
-				.ThenBy(x => x.InputCount);
+				.OrderBy(x => x.InputCount);
 			times++;
 		}
 		while (times <= maxCycleTimes && orderedRounds.ToImmutableDictionary(x => x.Id, x => x).First().Key != r.Id);

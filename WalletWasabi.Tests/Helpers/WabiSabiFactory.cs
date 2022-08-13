@@ -54,8 +54,7 @@ public static class WabiSabiFactory
 		RoundParameters.Create(
 			cfg,
 			Network.Main,
-			new FeeRate(100m),
-			Money.Coins(Constants.MaximumNumberOfBitcoins));
+			new FeeRate(100m));
 
 	public static Round CreateRound(RoundParameters parameters) =>
 		new(parameters, new InsecureRandom());
@@ -264,7 +263,7 @@ public static class WabiSabiFactory
 	}
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
-		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate, round.Parameters.MaxSuggestedAmount), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(), new InsecureRandom());
+		=> new(RoundParameters.Create(cfg, round.Parameters.Network, round.Parameters.MiningFeeRate), round, round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(), new InsecureRandom());
 
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs()
 	{
@@ -319,7 +318,7 @@ public static class WabiSabiFactory
 	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
 	{
 		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(new TesteableOptionsMonitor<WabiSabiConfig>(cfg), network);
-		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Money>()))
+		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>()))
 			.Returns(WabiSabiFactory.CreateRoundParameters(cfg)
 				with
 			{

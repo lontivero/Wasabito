@@ -16,17 +16,15 @@ public class RoundParameterFactory
 	public IOptionsMonitor<WabiSabiConfig> Config { get; }
 	public Network Network { get; }
 
-	public virtual RoundParameters CreateRoundParameter(FeeRate feeRate, Money maxSuggestedAmount) =>
+	public virtual RoundParameters CreateRoundParameter(FeeRate feeRate) =>
 		RoundParameters.Create(
 			Config.CurrentValue,
 			Network,
-			feeRate,
-			maxSuggestedAmount);
+			feeRate);
 
 	public virtual RoundParameters CreateBlameRoundParameter(FeeRate feeRate, Round blameOf) =>
 		RoundParameters.Create(
 			Config.CurrentValue,
 			Network,
-			feeRate,
-			blameOf.Parameters.MaxSuggestedAmount);
+			feeRate);
 }

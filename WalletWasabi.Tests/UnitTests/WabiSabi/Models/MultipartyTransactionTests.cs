@@ -19,7 +19,6 @@ public class MultipartyTransactionTests
 	{
 		MinRegistrableAmount = DefaultAllowedAmounts.Min,
 		MaxRegistrableAmount = DefaultAllowedAmounts.Max,
-		MaxSuggestedAmountBase = Money.Coins(Constants.MaximumNumberOfBitcoins)
 	}) with { MiningFeeRate = new FeeRate(0m)};
 
 	private static void ThrowsProtocolException(WabiSabiProtocolErrorCode expectedError, Action action) =>
