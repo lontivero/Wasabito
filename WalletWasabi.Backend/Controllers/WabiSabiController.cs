@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -52,11 +51,7 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	[HttpPost("output-registration")]
 	public async Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		var before = DateTimeOffset.UtcNow;
 		await IdempotencyRequestCache.GetCachedResponseAsync(request, action: (request, token) => Arena.RegisterOutputCoreAsync(request, token), cancellationToken);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("output-registration", duration);
 	}
 
 	[HttpPost("credential-issuance")]
@@ -81,29 +76,5 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	public async Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellableToken)
 	{
 		await Arena.ReadyToSignAsync(request, cancellableToken);
-
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("ready-to-sign", duration);
-	}
-
-	/// <summary>
-	/// Information about the current Rounds designed for the human eyes.
-	/// </summary>
-	[HttpGet("human-monitor")]
-	public HumanMonitorResponse GetHumanMonitor()
-	{
-		var response = Arena.Rounds
-			.Where(r => r.Phase is not Phase.Ended)
-			.OrderByDescending(x => x.InputCount)
-			.Select(r =>
-				new HumanMonitorRoundResponse(
-					RoundId: r.Id,
-					IsBlameRound: r is BlameRound,
-					InputCount: r.InputCount,
-					Phase: r.Phase.ToString(),
-					MaxSuggestedAmount: r.Parameters.MaxSuggestedAmount.ToDecimal(NBitcoin.MoneyUnit.BTC),
-					InputRegistrationRemaining: r.InputRegistrationTimeFrame.EndTime - DateTimeOffset.UtcNow));
-
-		return new HumanMonitorResponse(response.ToArray());
 	}
 }
