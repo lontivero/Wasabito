@@ -66,7 +66,6 @@ public partial class Arena : PeriodicRunner
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var before = DateTimeOffset.UtcNow;
 		using (await AsyncLock.LockAsync(cancel).ConfigureAwait(false))
 		{
 			TimeoutRounds();
@@ -89,8 +88,6 @@ public partial class Arena : PeriodicRunner
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
 		}
-		var duration = DateTimeOffset.UtcNow - before;
-		RequestTimeStatista.Instance.Add("arena-period", duration);
 	}
 
 	private void SetRoundStates()
