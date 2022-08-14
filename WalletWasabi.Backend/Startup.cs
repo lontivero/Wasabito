@@ -21,8 +21,6 @@ using WalletWasabi.TypeConverters;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
-using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
 [assembly: ApiController]
@@ -81,7 +79,6 @@ public class Startup
 		services.AddSingleton<Prison>();
 
 		services.AddSingleton<Warden>();
-		services.AddSingleton<InMemoryCoinJoinIdStore>();
 		services.AddSingleton<RoundParameterFactory>();
 
 		services.AddBackgroundService<Arena>();

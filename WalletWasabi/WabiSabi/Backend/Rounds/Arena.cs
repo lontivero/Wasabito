@@ -13,13 +13,11 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Extensions;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Backend.Rounds;
 
@@ -32,7 +30,6 @@ public partial class Arena : PeriodicRunner
 		IOptionsMonitor<WabiSabiConfig> config,
 		IRPCClient rpc,
 		Prison prison,
-		ICoinJoinIdStore coinJoinIdStore,
 		RoundParameterFactory roundParameterFactory,
 		ILogger<Arena> logger,
 		CoinJoinScriptStore? coinJoinScriptStore = null,
@@ -44,7 +41,6 @@ public partial class Arena : PeriodicRunner
 		Config = config;
 		Rpc = rpc;
 		Prison = prison;
-		CoinJoinIdStore = coinJoinIdStore;
 		CoinJoinScriptStore = coinJoinScriptStore;
 		RoundParameterFactory = roundParameterFactory;
 	}
@@ -59,7 +55,6 @@ public partial class Arena : PeriodicRunner
 	internal IRPCClient Rpc { get; }
 	private Prison Prison { get; }
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }
-	private ICoinJoinIdStore CoinJoinIdStore { get; set; }
 	private RoundParameterFactory RoundParameterFactory { get; }
 
 	protected override async Task ActionAsync(CancellationToken cancel)

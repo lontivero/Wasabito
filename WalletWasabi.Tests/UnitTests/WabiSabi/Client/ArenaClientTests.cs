@@ -177,7 +177,7 @@ public class ArenaClientTests
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 		var coin = fundingTx.WalletOutputs.First().Coin;
-		var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid(), false);
+		var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid());
 		round.Alices.Add(alice);
 
 		using Arena arena = await ArenaBuilder.From(config).CreateAndStartAsync(round);

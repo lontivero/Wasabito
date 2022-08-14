@@ -108,7 +108,7 @@ public static class WabiSabiFactory
 	}
 
 	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-		=> new(coin, ownershipProof, round, Guid.NewGuid(), false) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+		=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 	public static Alice CreateAlice(Key key, Money amount, Round round)
 		=> CreateAlice(CreateCoin(key, amount), CreateOwnershipProof(key), round);

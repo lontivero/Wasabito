@@ -5,11 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using WalletWasabi.BitcoinRpc;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.Banning;
 using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Rounds.CoinJoinStorage;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.Tests.Helpers;
@@ -27,7 +25,6 @@ public class ArenaBuilder
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
 	public RoundParameterFactory? RoundParameterFactory { get; set;  }
-	public ICoinJoinIdStore? CoinJoinIdStore { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
 	public Arena Create(params Round[] rounds)
@@ -37,11 +34,10 @@ public class ArenaBuilder
 		WabiSabiConfig config = Config ?? new();
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient().Object;
 		Network network = Network ?? Network.Main;
-		ICoinJoinIdStore coinJoinIdStore = CoinJoinIdStore ?? new CoinJoinIdStore();
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
 
 		var testeableCfg = new TesteableOptionsMonitor<WabiSabiConfig>(config);
-		Arena arena = new(network, testeableCfg, rpc, prison, coinJoinIdStore, roundParameterFactory, NullLogger<Arena>.Instance,  period: period);
+		Arena arena = new(network, testeableCfg, rpc, prison, roundParameterFactory, NullLogger<Arena>.Instance,  period: period);
 
 		foreach (var round in rounds)
 		{
@@ -70,12 +66,6 @@ public class ArenaBuilder
 		{
 			toDispose?.Dispose();
 		}
-	}
-
-	public ArenaBuilder With(ICoinJoinIdStore store)
-	{
-		CoinJoinIdStore = store;
-		return this;
 	}
 
 	public ArenaBuilder With(IMock<IRPCClient> rpc) =>
